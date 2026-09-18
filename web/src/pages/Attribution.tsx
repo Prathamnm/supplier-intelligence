@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDataset, useDetail } from '../lib/dataset'
 import { date, frac, inrShort, num } from '../lib/format'
+import type { ReturnRow } from '../lib/types'
 import { Card, Explain, Pill, Section, Stat } from '../components/ui'
 
 type MetricKey = 'misallocation' | 'top3' | 'top1'
@@ -34,6 +35,12 @@ export default function Attribution() {
   const coefs = Object.entries(a.coefficients).sort((p, q) => Math.abs(q[1]) - Math.abs(p[1]))
   const cmax = Math.max(...coefs.map(([, v]) => Math.abs(v)), 1e-9)
 
+  // A real untraced return to walk through: the clearest-cut one, so the example reads easily.
+  const example = useMemo(() => {
+    const untraced = (returns ?? []).filter((r) => r.source === 'inferred' && r.top3.length > 0)
+    return untraced.reduce<ReturnRow | undefined>((best, r) => (!best || r.top3[0].p > best.top3[0].p ? r : best), undefined)
+  }, [returns])
+
   const inferred = useMemo(() => {
     const f = filter.trim().toLowerCase()
     return (returns ?? [])
@@ -49,10 +56,38 @@ export default function Attribution() {
           {counts.returns_blank} of {counts.returns} customer returns don’t say which supplier they came from. We work out who most likely did.
         </h1>
         <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink-2">
-          A return note records the material and the date, but not which delivery it came from. So for each return we look at every
-          supplier’s track record up to that day — how much of their material we rejected, how often they shorted us, how many returns
-          were already traced to them — and estimate how likely each one is to be the source.
+          A return note records what came back and when, but not which supplier sent it. Without a supplier, its cost can’t be
+          charged to anyone. So for each one we estimate who most likely supplied it, from every supplier’s track record up to that
+          day, and share its value out accordingly.
         </p>
+
+        {example && (
+          <Card className="mt-6 max-w-3xl p-5">
+            <div className="text-xs font-medium uppercase tracking-[.1em] text-ink-3">Example</div>
+            <p className="mt-2 text-sm leading-relaxed text-ink">
+              <b>{num(example.quantity_returned, 2)} MT of {example.material_id}</b> came back on {date(example.return_date)}{' '}
+              (“{example.reason}”). No supplier was written down. Our estimate of who supplied it:
+            </p>
+            <div className="mt-3 space-y-1.5">
+              {example.top3.map((t) => (
+                <div key={t.supplier_id} className="grid grid-cols-[10rem_1fr_3rem] items-center gap-3 text-sm sm:grid-cols-[14rem_1fr_3rem]">
+                  <Link to={`/supplier/${t.supplier_id}`} className="truncate text-ink-2 hover:text-accent">
+                    {byId.get(t.supplier_id)?.supplier_name ?? t.supplier_id}
+                  </Link>
+                  <div className="h-2 rounded-full bg-surface-2">
+                    <div className="h-full rounded-full bg-accent" style={{ width: `${t.p * 100}%` }} />
+                  </div>
+                  <span className="num text-right text-ink-2">{frac(t.p)}</span>
+                </div>
+              ))}
+              <div className="text-xs text-ink-3">…and smaller chances for the other suppliers.</div>
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-ink-2">
+              The return’s value is shared out in these proportions, so no single supplier is blamed for it outright — and briefs never
+              ask a supplier to pay for an untraced return.
+            </p>
+          </Card>
+        )}
       </section>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -66,7 +101,7 @@ export default function Attribution() {
       </section>
 
       <Section eyebrow="Does it work?" title="Tested against simpler approaches"
-        lede="We took returns where the supplier is known, hid it, asked each method to guess, and checked the answers."
+        lede={`To check the estimates, we took the ${a.metrics.n ?? 0} returns where the supplier IS recorded, covered up the answer, let each method guess, then compared.`}
         aside={
           <div className="flex flex-wrap rounded-lg border border-line bg-surface p-0.5 text-xs">
             {METRICS.map((x) => (
@@ -99,6 +134,11 @@ export default function Attribution() {
         <p className="mt-3 max-w-3xl text-sm leading-relaxed text-ink-2">
           Why not simply blame whoever delivered that material most recently, as the assignment suggests? Because in this data that’s
           rarely who it was. What does point to the right supplier is their own track record.
+        </p>
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-ink-3">
+          One assumption: the returns with a supplier written down are typical of those without. If clerks recorded the supplier more
+          often for some suppliers than others, the estimates would lean towards those suppliers — which is why only recorded returns
+          are ever claimed from a supplier.
         </p>
       </Section>
 

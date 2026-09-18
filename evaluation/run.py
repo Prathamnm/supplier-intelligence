@@ -82,6 +82,23 @@ SCENARIOS = [
                 "like 23,26,836.99, extra columns and stray spaces. Should give the same answer as clean files.",
         n_suppliers=30, n_orders=5_000, export="indian", seed=77,
         bad={s: Profile(short=0.035, late=5.0, reject=0.025, defect=4.0) for s in ["S005", "S014", "S026"]}),
+    Scenario(
+        name="H_small_but_bad", title="A small supplier that is genuinely bad",
+        purpose="One supplier has only 12 orders, and every one of them goes badly; another small "
+                "supplier with 10 orders is fine. Small suppliers are protected from bad luck -- does "
+                "that protection hide one who really is bad?",
+        n_suppliers=40, n_orders=6_000, seed=88,
+        tiny_suppliers={"S038": 12, "S039": 10},
+        bad={"S038": Profile(short=0.05, late=6.0, reject=0.04, defect=5.0),
+             "S007": Profile(short=0.03, late=4.5, reject=0.02, defect=4.0),
+             "S021": Profile(short=0.03, late=4.5, reject=0.02, defect=4.0)}),
+    Scenario(
+        name="I_biased_recording", title="Returns recorded selectively",
+        purpose="Clerks write the supplier down on 90% of returns from known problem suppliers but only "
+                "45% from the rest, so the untraced returns come mostly from good suppliers. Does the "
+                "model over-blame the problem suppliers for them?",
+        n_suppliers=30, n_orders=6_000, seed=99, label_share=0.45, label_share_bad=0.90,
+        bad={s: Profile(short=0.03, late=4.5, reject=0.02, defect=5.0) for s in ["S004", "S012", "S023"]}),
 ]
 
 
@@ -96,11 +113,9 @@ def _misallocation(prob: pd.DataFrame, truth: pd.Series) -> float:
 
 
 def _ranked(prob: pd.DataFrame, truth: pd.Series) -> tuple[float, float]:
-    d = prob.copy()
-    d["rank"] = d.groupby("return_id")["probability"].rank(ascending=False, method="first")
-    d = d.merge(truth.rename("truth"), left_on="return_id", right_index=True)
-    hit = d[d["supplier_id"] == d["truth"]]
-    return float((hit["rank"] == 1).sum() / len(truth)), float((hit["rank"] <= 3).sum() / len(truth))
+    """Top-1 and top-3, with ties scored fairly (the pipeline's own rule)."""
+    hits = attribute.tie_aware_hits(prob, "probability", truth)
+    return float(hits["top1"].mean()), float(hits["top3"].mean())
 
 
 def _ps_rule(returns: pd.DataFrame, fact: pd.DataFrame, ids: list[str]) -> pd.DataFrame:
@@ -109,8 +124,10 @@ def _ps_rule(returns: pd.DataFrame, fact: pd.DataFrame, ids: list[str]) -> pd.Da
     r = returns[returns["return_id"].isin(ids)][["return_id", "return_date", "material_id"]]
     m = r.merge(b, on="material_id")
     m = m[m["receipt_date"] <= m["return_date"]]
-    pick = m.sort_values("receipt_date").groupby("return_id").tail(1)
-    return pick[["return_id", "supplier_id"]].assign(probability=1.0)
+    # Everyone who delivered on the latest day shares the blame equally.
+    latest = m[m["receipt_date"] == m.groupby("return_id")["receipt_date"].transform("max")]
+    latest = latest.drop_duplicates(["return_id", "supplier_id"])[["return_id", "supplier_id"]]
+    return latest.assign(probability=1.0 / latest.groupby("return_id")["supplier_id"].transform("count"))
 
 
 def _auc(scores: pd.Series, positive: set[str]) -> float | None:

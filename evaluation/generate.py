@@ -57,6 +57,9 @@ class Scenario:
     bad: dict[str, Profile]            # supplier_id -> planted behaviour
     price_noise: float = 0.10          # sd of per-order price noise (fraction)
     label_share: float = 0.65          # share of returns with supplier recorded
+    # If set, returns from planted offenders are recorded at this rate instead:
+    # clerks write the supplier down more often when it's a known problem one.
+    label_share_bad: float | None = None
     return_rate: float = 0.0045        # returns per MT received, for a normal supplier
     materials: int = 18
     index_materials: int = 6
@@ -171,7 +174,9 @@ def generate(sc: Scenario, root: Path) -> dict:
     ret = pd.DataFrame(rows).sort_values("return_date").reset_index(drop=True)
     ret.insert(0, "return_id", [f"RET-{i:05d}" for i in range(len(ret))])
     ret["client_id"] = [f"Client-{c:03d}" for c in rng.integers(0, 90, len(ret))]
-    labelled = rng.random(len(ret)) < sc.label_share
+    share = np.where(ret["true_supplier"].isin(list(sc.bad)) & (sc.label_share_bad is not None),
+                     sc.label_share_bad if sc.label_share_bad is not None else sc.label_share, sc.label_share)
+    labelled = rng.random(len(ret)) < share
     ret["supplier_id_traced"] = np.where(labelled, ret["true_supplier"], None)
     ret["return_date"] = ret["return_date"].dt.strftime("%Y-%m-%d")
 

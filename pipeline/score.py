@@ -163,8 +163,10 @@ def build(totals: pd.DataFrame, orders: pd.DataFrame, cats: pd.DataFrame,
         s[f"score_{d}"] = _score_dim(s[f"{d}_adj"], centre, unit)
     s["score"] = _composite(s, config.WEIGHTS)
 
-    s["rank"] = s["score"].rank(ascending=False, method="first").astype(int)  # 1 = best
-    s["risk_rank"] = s["score"].rank(ascending=True, method="first").astype(int)  # 1 = worst
+    # Equal scores share a rank ("joint 1st"); order in the file must not decide it.
+    rounded = s["score"].round(6)
+    s["rank"] = rounded.rank(ascending=False, method="min").astype(int)      # 1 = best
+    s["risk_rank"] = rounded.rank(ascending=True, method="min").astype(int)  # 1 = worst
     s["low_confidence"] = s["orders"] < config.MIN_ORDERS_FOR_CONFIDENCE
     s["band"] = [_band(r["score"], [r[f"score_{d}"] for d in DIMENSIONS]) for _, r in s.iterrows()]
 

@@ -6,7 +6,7 @@ import { date } from '../lib/format'
 
 const NAV = [
   { to: '/', label: 'Overview', end: true },
-  { to: '/attribution', label: 'Attribution' },
+  { to: '/attribution', label: 'Untraced returns' },
   { to: '/briefs', label: 'Briefs' },
   { to: '/method', label: 'Method' },
   { to: '/upload', label: 'Upload' },

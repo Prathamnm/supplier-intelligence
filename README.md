@@ -87,13 +87,17 @@ CSVs ─► 01 load ─► 02 join ─► 03 attribute ─► 04 rupees ─► 0
 
 | Scenario | Offenders found | Hidden-return value misallocated (model vs PS rule) | ₹ vs truth |
 |---|---|---|---|
-| Larger panel (70 suppliers, 14k orders), subtler offenders | 5/5 | 14.5% vs 23.0% | exact |
-| Each offender fails one way; one bad on a single material | 4/4, right dimension each time; single-material offender flagged only there | 12.0% vs 21.4% | exact |
+| Larger panel (70 suppliers, 14k orders), subtler offenders | 5/5 | 14.5% vs 21.6% | exact |
+| Each offender fails one way; one bad on a single material | 4/4, right dimension each time; single-material offender flagged only there | 12.0% vs 21.6% | exact |
 | Sparse & messy (15% labelled, duplicates, broken dates, tiny suppliers) | 3/3; unlucky 2-order supplier not condemned | 13.8% vs 26.4% | exact |
-| Control: nobody is bad | 0 false alarms | 19.2% vs 23.9% | exact |
-| Two suppliers go bad only in the final year | 4/4; both late deteriorators flagged, year view shows ₹24 L/yr → ₹1.6–1.9 Cr | 14.2% vs 23.3% | exact |
-| Assignment-like returns at scale (120 suppliers, 30k orders) | 6/6 | 15.1% vs 24.2% | exact |
-| Indian spreadsheet exports (DD/MM/YYYY, 12,34,567.89, BOM, extra columns) | 3/3, identical to clean files | 15.7% vs 28.9% | exact |
+| Control: nobody is bad | 0 false alarms | 19.2% vs 23.2% | exact |
+| Two suppliers go bad only in the final year | 4/4; both late deteriorators flagged, year view shows ₹24 L/yr → ₹1.6–1.9 Cr | 14.2% vs 22.4% | exact |
+| Assignment-like returns at scale (120 suppliers, 30k orders) | 6/6 | 15.1% vs 22.8% | exact |
+| Indian spreadsheet exports (DD/MM/YYYY, 12,34,567.89, BOM, extra columns) | 3/3, identical to clean files | 15.7% vs 28.5% | exact |
+| A small supplier (12 orders) that is genuinely bad | 3/3; ranked last of 40 — small-supplier protection doesn't hide real failure | 16.8% vs 24.3% | exact |
+| Returns recorded selectively (90% for problem suppliers, 45% for others) | 3/3 | **29.4% vs 17.1% — the model is worse here** | exact |
+
+The last row is a real limitation, stated on the site: if recorded returns aren't typical of unrecorded ones, the estimate leans towards the suppliers who get recorded more, and no method can detect that from the data alone. That is why briefs only ever claim recorded returns. `python -m evaluation.audit` separately recomputes every headline figure from the raw CSVs without using the pipeline, and checks the site matches (28/28).
 
 The harness found weaknesses the assignment data could not reveal — relative scaling that condemned someone even on a clean panel, a biased price test, an attribution model that could underperform a simple exposure rule on sparse labels, and a loader that misread Indian-format amounts and could misread DD/MM dates. All were fixed and are covered by tests.
 

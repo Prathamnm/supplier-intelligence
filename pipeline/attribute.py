@@ -220,12 +220,37 @@ def _normalise(df: pd.DataFrame, col: str) -> pd.Series:
     return np.where(total > 0, df[col] / total.where(total > 0, 1), 1.0 / n)
 
 
+def tie_aware_hits(df: pd.DataFrame, prob: str, truth: pd.Series) -> pd.DataFrame:
+    """Expected top-1 / top-3 / reciprocal-rank credit per return, fair to ties.
+
+    When several suppliers share the top probability (a rule that cannot
+    choose, or an equal split), the true supplier is equally likely to sit
+    in any of the tied positions. Credit is the average over those
+    positions -- never whatever order the rows happened to be in.
+    """
+    d = df[["return_id", "supplier_id", prob]].merge(
+        truth.rename("truth"), left_on="return_id", right_index=True)
+    p_true = d.loc[d["supplier_id"] == d["truth"]].set_index("return_id")[prob]
+    p_true = p_true.reindex(truth.index)                       # NaN: truth not a candidate
+    d["p_true"] = d["return_id"].map(p_true)
+    better = (d[prob] > d["p_true"]).groupby(d["return_id"]).sum()
+    tied = (d[prob] == d["p_true"]).groupby(d["return_id"]).sum()
+    out = pd.DataFrame({"better": better, "tied": tied}).reindex(truth.index)
+    out = out.assign(found=p_true.notna()).fillna({"better": 0, "tied": 1})
+
+    def credit(k: int) -> pd.Series:
+        """Share of tied positions that fall within the top k."""
+        return (k - out["better"]).clip(lower=0, upper=out["tied"]) / out["tied"] * out["found"]
+
+    positions = [(out["better"] + j) for j in range(1, int(out["tied"].max()) + 1)]
+    rr = sum(np.where(out["tied"] >= j, 1 / pos, 0.0) for j, pos in enumerate(positions, 1)) / out["tied"]
+    return out.assign(top1=credit(1), top3=credit(3), rr=rr * out["found"])
+
+
 def _score(df: pd.DataFrame, prob: str, truth: pd.Series) -> dict:
     """Ranking accuracy and aggregate misallocation for one method."""
-    d = df[["return_id", "supplier_id", prob]].copy()
-    d["rank"] = d.groupby("return_id")[prob].rank(ascending=False, method="first")
-    d = d.merge(truth.rename("truth"), left_on="return_id", right_index=True)
-    hit = d[d["supplier_id"] == d["truth"]]
+    d = df[["return_id", "supplier_id", prob]]
+    hits = tie_aware_hits(df, prob, truth)
     n = len(truth)
 
     predicted = d.groupby("supplier_id")[prob].sum()
@@ -235,19 +260,23 @@ def _score(df: pd.DataFrame, prob: str, truth: pd.Series) -> dict:
                       - actual.reindex(sups, fill_value=0)).abs().sum() / 2 / n)
 
     return {
-        "top1": float((hit["rank"] == 1).sum() / n),
-        "top3": float((hit["rank"] <= 3).sum() / n),
-        "mrr": float((1 / hit["rank"]).sum() / n),
+        "top1": float(hits["top1"].sum() / n),
+        "top3": float(hits["top3"].sum() / n),
+        "mrr": float(hits["rr"].sum() / n),
         "misallocation": misalloc,
         "n": int(n),
     }
 
 
 def _one_hot(df: pd.DataFrame, col: str) -> pd.Series:
-    """Turn a score into a hard pick -- how a rule-based baseline allocates."""
-    out = pd.Series(0.0, index=df.index)
-    out.loc[df.groupby("return_id")[col].idxmax()] = 1.0
-    return out
+    """Turn a score into a hard pick -- how a rule-based baseline allocates.
+
+    Suppliers tied for the top score share the pick equally; which of them
+    comes first in the data must not decide the outcome.
+    """
+    top = df.groupby("return_id")[col].transform("max")
+    is_top = (df[col] == top).astype(float)
+    return is_top / is_top.groupby(df["return_id"]).transform("sum")
 
 
 def _new_model():
