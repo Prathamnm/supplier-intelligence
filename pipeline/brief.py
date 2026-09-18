@@ -312,6 +312,12 @@ def render(briefs: list[dict], out_dir: Path, pdf: bool = True) -> dict[str, dic
     template = env.get_template("brief.html.j2")
 
     out_dir.mkdir(parents=True, exist_ok=True)
+    # Briefs from an earlier run whose supplier is no longer in the bottom
+    # group must not linger next to the current ones.
+    current = {b["supplier_id"] for b in briefs}
+    for old in [*out_dir.glob("*.html"), *out_dir.glob("*.pdf")]:
+        if old.stem not in current:
+            old.unlink()
     browser = _browser() if pdf else None
     files: dict[str, dict] = {}
     for b in briefs:
