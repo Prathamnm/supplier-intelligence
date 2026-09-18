@@ -1,0 +1,381 @@
+return_id,return_date,client_id,material_id,quantity_returned,reason,supplier_id_traced
+RET-0000,2023-11-02,Client-000,SS Sheets,4.57,Weight short,
+RET-0001,2021-10-25,Client-058,MS Flats,3.46,Wrong dimensions,
+RET-0002,2022-03-13,Client-047,MS Sheets,4.12,Bend/warp,VS12
+RET-0003,2021-09-05,Client-068,GI Pipes,3.43,Bend/warp,VS04
+RET-0004,2021-06-14,Client-027,ERW Pipes,3.38,Weight short,
+RET-0005,2021-11-27,Client-052,Angles & Channels,1.42,Wrong dimensions,VS03
+RET-0006,2023-06-11,Client-039,CR Sheets,3.84,Bend/warp,
+RET-0007,2023-07-02,Client-024,Angles & Channels,1.49,Bend/warp,VS12
+RET-0008,2022-07-24,Client-001,SS Pipes,0.87,Weight short,VS12
+RET-0009,2023-01-22,Client-043,GI Sheets,1.86,Edge damage,VS32
+RET-0010,2023-11-07,Client-007,MS Flats,1.38,Surface rust,VS12
+RET-0011,2022-11-23,Client-021,MS Sheets,3.84,Surface rust,VS34
+RET-0012,2021-08-21,Client-029,MS Rods,0.2,Edge damage,
+RET-0013,2021-11-01,Client-037,Structural Steel,3.25,Weight short,
+RET-0014,2021-11-24,Client-067,SS Sheets,2.2,Bend/warp,VS12
+RET-0015,2022-09-01,Client-058,GI Pipes,0.73,Edge damage,VS12
+RET-0016,2023-04-16,Client-019,CR Sheets,3.96,Edge damage,VS31
+RET-0017,2022-04-08,Client-052,SS Sheets,2.31,Edge damage,VS03
+RET-0018,2021-03-16,Client-071,GI Pipes,1.53,Wrong dimensions,VS29
+RET-0019,2022-01-04,Client-033,HR Coils,0.74,Wrong dimensions,VS19
+RET-0020,2023-06-17,Client-006,Angles & Channels,4.84,Wrong dimensions,
+RET-0021,2021-06-26,Client-060,MS Pipes,2.86,Grade mismatch,
+RET-0022,2022-07-19,Client-048,HR Coils,1.82,Surface rust,VS12
+RET-0023,2022-05-02,Client-035,SS Sheets,0.37,Bend/warp,VS12
+RET-0024,2023-12-19,Client-027,MS Pipes,0.45,Edge damage,
+RET-0025,2022-12-05,Client-069,SS Sheets,3.77,Edge damage,VS12
+RET-0026,2022-11-29,Client-015,MS Pipes,0.86,Wrong dimensions,
+RET-0027,2021-08-25,Client-019,SS Pipes,0.56,Edge damage,VS12
+RET-0028,2022-11-16,Client-070,CR Sheets,2.58,Wrong dimensions,VS12
+RET-0029,2023-08-22,Client-003,GI Pipes,2.28,Grade mismatch,VS12
+RET-0030,2021-03-12,Client-027,MS Rods,1.01,Bend/warp,
+RET-0031,2022-07-07,Client-057,GI Sheets,0.85,Bend/warp,VS12
+RET-0032,2021-05-18,Client-061,CR Sheets,2.62,Edge damage,VS03
+RET-0033,2022-06-09,Client-063,Fasteners & Fittings,2.52,Weight short,
+RET-0034,2022-02-25,Client-049,GI Wire,2.87,Surface rust,VS13
+RET-0035,2022-10-08,Client-075,Angles & Channels,2.77,Wrong dimensions,VS03
+RET-0036,2023-02-12,Client-067,Fasteners & Fittings,0.91,Wrong dimensions,VS10
+RET-0037,2021-03-08,Client-013,ERW Pipes,1.65,Edge damage,VS12
+RET-0038,2022-01-05,Client-069,Structural Steel,4.17,Bend/warp,VS29
+RET-0039,2023-02-09,Client-026,MS Flats,0.45,Edge damage,VS13
+RET-0040,2022-05-12,Client-038,SS Pipes,4.1,Weight short,VS14
+RET-0041,2021-06-10,Client-048,GI Wire,1.87,Surface rust,
+RET-0042,2021-03-13,Client-063,MS Pipes,2.69,Weight short,VS11
+RET-0043,2023-01-31,Client-007,Hex Bars,3.87,Weight short,
+RET-0044,2021-10-14,Client-006,MS Flats,4.39,Bend/warp,
+RET-0045,2021-02-05,Client-049,MS Flats,4.93,Wrong dimensions,
+RET-0046,2023-09-15,Client-036,MS Sheets,3.41,Bend/warp,VS32
+RET-0047,2022-02-01,Client-040,MS Rods,1.05,Surface rust,VS31
+RET-0048,2023-01-13,Client-068,MS Sheets,2.51,Edge damage,
+RET-0049,2022-11-27,Client-039,Fasteners & Fittings,4.32,Weight short,
+RET-0050,2022-08-02,Client-034,ERW Pipes,1.65,Edge damage,VS25
+RET-0051,2023-03-29,Client-070,MS Sheets,1.46,Grade mismatch,VS13
+RET-0052,2021-11-15,Client-009,Structural Steel,4.23,Bend/warp,VS19
+RET-0053,2022-05-14,Client-056,GI Wire,0.39,Edge damage,
+RET-0054,2021-12-16,Client-003,Angles & Channels,4.69,Surface rust,VS03
+RET-0055,2023-07-09,Client-061,Fasteners & Fittings,1.84,Surface rust,
+RET-0056,2023-03-06,Client-079,GI Wire,2.1,Bend/warp,VS03
+RET-0057,2023-03-12,Client-006,MS Pipes,3.61,Wrong dimensions,
+RET-0058,2021-02-03,Client-050,SS Pipes,3.3,Weight short,VS03
+RET-0059,2022-10-15,Client-050,Fasteners & Fittings,1.88,Bend/warp,VS19
+RET-0060,2021-11-12,Client-010,Structural Steel,3.85,Weight short,
+RET-0061,2023-12-31,Client-030,MS Flats,1.29,Grade mismatch,VS10
+RET-0062,2023-06-22,Client-062,MS Sheets,3.22,Bend/warp,VS19
+RET-0063,2023-03-10,Client-028,MS Flats,4.2,Surface rust,
+RET-0064,2022-09-29,Client-062,MS Sheets,3.58,Surface rust,VS01
+RET-0065,2023-06-05,Client-073,Square/Rect Tubes,4.04,Bend/warp,
+RET-0066,2021-05-26,Client-055,Structural Steel,2.05,Bend/warp,VS03
+RET-0067,2022-04-27,Client-007,GI Wire,1.73,Surface rust,
+RET-0068,2021-10-02,Client-056,Fasteners & Fittings,3.08,Edge damage,
+RET-0069,2022-09-06,Client-079,GI Wire,2.0,Surface rust,VS19
+RET-0070,2022-08-09,Client-019,GI Wire,3.06,Grade mismatch,
+RET-0071,2023-12-17,Client-060,Structural Steel,2.32,Grade mismatch,VS20
+RET-0072,2023-11-30,Client-058,Square/Rect Tubes,1.81,Bend/warp,VS03
+RET-0073,2023-04-13,Client-057,Spring Steel,4.93,Grade mismatch,
+RET-0074,2022-05-25,Client-072,MS Pipes,3.59,Surface rust,VS03
+RET-0075,2022-07-12,Client-002,Structural Steel,0.67,Wrong dimensions,VS23
+RET-0076,2022-04-18,Client-011,MS Rods,0.42,Weight short,VS03
+RET-0077,2021-06-15,Client-068,CR Sheets,0.99,Weight short,VS03
+RET-0078,2023-05-11,Client-030,SS Sheets,2.3,Bend/warp,VS08
+RET-0079,2021-05-25,Client-027,CR Sheets,3.34,Weight short,VS11
+RET-0080,2023-05-17,Client-010,HR Coils,4.0,Surface rust,VS19
+RET-0081,2021-06-08,Client-009,Angles & Channels,3.57,Bend/warp,VS19
+RET-0082,2021-03-19,Client-076,MS Pipes,0.34,Bend/warp,VS12
+RET-0083,2022-08-30,Client-069,CR Sheets,0.42,Surface rust,VS12
+RET-0084,2022-05-02,Client-071,CR Sheets,2.87,Surface rust,VS32
+RET-0085,2021-06-28,Client-076,MS Sheets,0.37,Grade mismatch,VS19
+RET-0086,2023-06-22,Client-009,GI Pipes,4.47,Weight short,
+RET-0087,2021-07-15,Client-049,GI Wire,0.57,Bend/warp,VS28
+RET-0088,2021-12-08,Client-052,CR Sheets,4.45,Bend/warp,
+RET-0089,2021-04-02,Client-070,MS Flats,0.85,Edge damage,
+RET-0090,2023-10-10,Client-061,Structural Steel,0.97,Surface rust,
+RET-0091,2021-05-31,Client-066,GI Sheets,4.34,Surface rust,VS03
+RET-0092,2023-07-11,Client-078,MS Sheets,1.59,Bend/warp,VS20
+RET-0093,2021-08-24,Client-064,CR Sheets,4.67,Wrong dimensions,VS23
+RET-0094,2021-07-04,Client-051,GI Pipes,1.24,Weight short,VS03
+RET-0095,2021-11-01,Client-060,Square/Rect Tubes,0.37,Weight short,VS12
+RET-0096,2022-01-04,Client-078,GI Wire,3.33,Weight short,VS16
+RET-0097,2022-07-25,Client-068,GI Sheets,3.96,Surface rust,
+RET-0098,2021-02-08,Client-043,ERW Pipes,2.44,Grade mismatch,
+RET-0099,2021-08-23,Client-026,Angles & Channels,3.15,Weight short,VS07
+RET-0100,2022-06-23,Client-060,MS Sheets,1.87,Grade mismatch,VS14
+RET-0101,2023-11-10,Client-021,HR Coils,4.1,Wrong dimensions,VS12
+RET-0102,2022-04-27,Client-018,Square/Rect Tubes,0.57,Wrong dimensions,VS12
+RET-0103,2023-10-16,Client-021,GI Wire,2.8,Bend/warp,
+RET-0104,2022-05-02,Client-033,Angles & Channels,4.3,Weight short,VS12
+RET-0105,2021-05-01,Client-078,SS Sheets,4.47,Surface rust,VS11
+RET-0106,2021-12-23,Client-044,Hex Bars,2.66,Edge damage,
+RET-0107,2022-02-22,Client-020,Fasteners & Fittings,3.19,Weight short,VS12
+RET-0108,2023-09-06,Client-007,GI Sheets,1.9,Grade mismatch,
+RET-0109,2021-11-05,Client-010,GI Wire,4.86,Bend/warp,VS03
+RET-0110,2021-03-13,Client-017,SS Pipes,3.22,Bend/warp,VS03
+RET-0111,2022-04-16,Client-056,SS Sheets,2.44,Weight short,VS19
+RET-0112,2023-12-10,Client-011,GI Wire,1.26,Bend/warp,VS12
+RET-0113,2023-09-25,Client-031,MS Pipes,2.58,Grade mismatch,VS22
+RET-0114,2021-07-04,Client-078,MS Sheets,2.01,Weight short,VS15
+RET-0115,2023-02-14,Client-049,GI Sheets,1.42,Weight short,
+RET-0116,2021-12-21,Client-021,MS Flats,0.85,Grade mismatch,VS10
+RET-0117,2022-03-27,Client-034,CR Sheets,4.02,Wrong dimensions,VS17
+RET-0118,2023-04-02,Client-057,ERW Pipes,0.47,Edge damage,VS03
+RET-0119,2023-03-12,Client-072,GI Pipes,3.0,Edge damage,
+RET-0120,2022-07-23,Client-067,MS Flats,1.08,Edge damage,
+RET-0121,2021-11-15,Client-066,SS Pipes,5.0,Bend/warp,
+RET-0122,2022-02-14,Client-013,Structural Steel,3.78,Wrong dimensions,VS32
+RET-0123,2022-02-25,Client-042,MS Pipes,3.29,Edge damage,VS19
+RET-0124,2022-01-26,Client-078,MS Flats,1.57,Wrong dimensions,
+RET-0125,2022-01-10,Client-070,Spring Steel,4.46,Grade mismatch,VS01
+RET-0126,2021-04-04,Client-058,Hex Bars,0.59,Grade mismatch,VS03
+RET-0127,2022-03-25,Client-065,MS Rods,0.24,Edge damage,
+RET-0128,2023-12-02,Client-026,SS Sheets,4.03,Bend/warp,
+RET-0129,2021-09-19,Client-063,GI Sheets,4.97,Bend/warp,
+RET-0130,2022-05-04,Client-064,SS Pipes,0.37,Weight short,
+RET-0131,2022-10-01,Client-060,HR Coils,2.89,Bend/warp,
+RET-0132,2023-03-11,Client-022,Hex Bars,0.67,Surface rust,VS17
+RET-0133,2021-04-08,Client-035,SS Pipes,2.37,Grade mismatch,
+RET-0134,2022-05-13,Client-045,ERW Pipes,3.13,Bend/warp,
+RET-0135,2021-02-15,Client-027,GI Sheets,0.62,Surface rust,VS19
+RET-0136,2021-09-20,Client-039,Fasteners & Fittings,0.97,Wrong dimensions,VS02
+RET-0137,2023-11-08,Client-010,MS Flats,2.71,Grade mismatch,VS06
+RET-0138,2021-03-21,Client-014,GI Wire,1.97,Wrong dimensions,VS12
+RET-0139,2022-01-08,Client-013,MS Rods,0.15,Weight short,
+RET-0140,2021-04-28,Client-058,MS Pipes,3.05,Wrong dimensions,VS05
+RET-0141,2021-06-11,Client-021,HR Coils,0.86,Grade mismatch,VS19
+RET-0142,2021-07-03,Client-022,GI Sheets,0.25,Grade mismatch,VS03
+RET-0143,2021-08-05,Client-049,SS Sheets,3.12,Surface rust,VS12
+RET-0144,2022-05-29,Client-063,MS Rods,0.8,Bend/warp,
+RET-0145,2022-09-01,Client-073,Angles & Channels,4.78,Surface rust,VS19
+RET-0146,2022-03-26,Client-046,Angles & Channels,0.23,Bend/warp,VS03
+RET-0147,2023-06-12,Client-004,Square/Rect Tubes,1.63,Grade mismatch,
+RET-0148,2021-10-02,Client-009,Structural Steel,4.07,Weight short,
+RET-0149,2022-04-29,Client-056,Square/Rect Tubes,1.09,Grade mismatch,VS12
+RET-0150,2021-12-03,Client-039,SS Sheets,0.56,Wrong dimensions,
+RET-0151,2023-06-09,Client-072,GI Wire,0.34,Bend/warp,
+RET-0152,2023-12-26,Client-028,Angles & Channels,3.06,Grade mismatch,
+RET-0153,2023-11-29,Client-070,MS Pipes,1.56,Bend/warp,
+RET-0154,2023-03-14,Client-039,Structural Steel,2.21,Wrong dimensions,VS03
+RET-0155,2022-08-02,Client-028,MS Rods,2.93,Edge damage,VS03
+RET-0156,2023-02-28,Client-049,Angles & Channels,4.32,Weight short,VS19
+RET-0157,2021-05-31,Client-017,ERW Pipes,1.15,Surface rust,
+RET-0158,2023-01-13,Client-051,ERW Pipes,3.75,Grade mismatch,
+RET-0159,2023-10-24,Client-015,Angles & Channels,4.6,Edge damage,VS12
+RET-0160,2021-12-27,Client-060,MS Rods,3.21,Surface rust,
+RET-0161,2021-08-11,Client-065,MS Rods,3.17,Weight short,VS10
+RET-0162,2023-07-03,Client-071,Angles & Channels,4.17,Edge damage,VS19
+RET-0163,2022-01-03,Client-032,MS Pipes,4.24,Grade mismatch,VS03
+RET-0164,2021-07-14,Client-043,MS Pipes,1.21,Bend/warp,VS25
+RET-0165,2022-09-27,Client-060,SS Pipes,0.66,Grade mismatch,VS03
+RET-0166,2022-09-28,Client-046,MS Flats,2.94,Weight short,
+RET-0167,2021-05-15,Client-002,GI Pipes,4.9,Edge damage,VS19
+RET-0168,2022-10-17,Client-054,Structural Steel,4.57,Weight short,
+RET-0169,2023-08-08,Client-052,Square/Rect Tubes,3.18,Surface rust,VS14
+RET-0170,2021-03-22,Client-041,Hex Bars,0.38,Grade mismatch,
+RET-0171,2023-07-01,Client-025,SS Sheets,2.15,Bend/warp,
+RET-0172,2023-11-04,Client-021,GI Pipes,0.95,Wrong dimensions,
+RET-0173,2022-03-21,Client-011,SS Pipes,2.31,Wrong dimensions,VS19
+RET-0174,2021-03-29,Client-062,Angles & Channels,1.91,Edge damage,
+RET-0175,2023-04-06,Client-078,HR Coils,0.28,Grade mismatch,
+RET-0176,2022-01-03,Client-078,Spring Steel,1.1,Grade mismatch,VS03
+RET-0177,2021-08-30,Client-074,MS Pipes,2.17,Edge damage,VS11
+RET-0178,2023-07-08,Client-048,ERW Pipes,1.5,Weight short,VS03
+RET-0179,2023-10-10,Client-045,MS Rods,1.97,Weight short,VS19
+RET-0180,2022-07-20,Client-009,Angles & Channels,3.28,Weight short,
+RET-0181,2021-12-14,Client-074,Angles & Channels,2.94,Wrong dimensions,VS03
+RET-0182,2021-10-03,Client-042,MS Pipes,3.85,Surface rust,
+RET-0183,2021-12-10,Client-001,MS Flats,1.31,Edge damage,VS10
+RET-0184,2023-05-19,Client-068,MS Flats,3.84,Surface rust,VS08
+RET-0185,2021-04-13,Client-077,Angles & Channels,3.88,Surface rust,VS03
+RET-0186,2022-12-25,Client-062,GI Sheets,1.17,Surface rust,VS12
+RET-0187,2022-05-06,Client-037,GI Pipes,0.19,Edge damage,VS19
+RET-0188,2023-09-30,Client-008,Fasteners & Fittings,2.95,Edge damage,
+RET-0189,2021-03-07,Client-012,MS Flats,2.94,Surface rust,VS12
+RET-0190,2023-10-21,Client-044,SS Sheets,4.69,Weight short,
+RET-0191,2023-07-13,Client-065,ERW Pipes,2.33,Bend/warp,VS16
+RET-0192,2022-10-18,Client-040,HR Coils,3.75,Weight short,VS19
+RET-0193,2023-06-19,Client-079,MS Flats,0.9,Bend/warp,
+RET-0194,2023-05-18,Client-027,HR Coils,0.92,Weight short,VS12
+RET-0195,2023-10-29,Client-078,GI Pipes,0.49,Edge damage,VS19
+RET-0196,2022-11-30,Client-013,GI Wire,4.63,Weight short,
+RET-0197,2022-05-24,Client-050,SS Sheets,2.64,Wrong dimensions,
+RET-0198,2023-12-05,Client-070,Fasteners & Fittings,0.52,Edge damage,VS19
+RET-0199,2021-04-09,Client-074,Angles & Channels,0.61,Surface rust,
+RET-0200,2022-08-02,Client-030,MS Sheets,2.26,Edge damage,VS28
+RET-0201,2023-09-05,Client-027,HR Coils,4.85,Grade mismatch,VS05
+RET-0202,2022-03-01,Client-061,SS Sheets,3.61,Bend/warp,VS12
+RET-0203,2021-11-19,Client-036,GI Wire,2.36,Wrong dimensions,
+RET-0204,2022-03-26,Client-029,CR Sheets,3.69,Weight short,
+RET-0205,2022-11-24,Client-039,Angles & Channels,2.32,Wrong dimensions,
+RET-0206,2021-08-19,Client-075,MS Rods,0.96,Bend/warp,
+RET-0207,2021-03-10,Client-077,MS Pipes,1.42,Grade mismatch,
+RET-0208,2021-10-13,Client-060,SS Sheets,2.58,Surface rust,VS24
+RET-0209,2023-07-07,Client-033,MS Pipes,4.5,Grade mismatch,VS04
+RET-0210,2021-04-18,Client-023,Square/Rect Tubes,2.82,Wrong dimensions,VS12
+RET-0211,2023-09-15,Client-004,GI Sheets,4.64,Grade mismatch,VS12
+RET-0212,2023-07-08,Client-024,GI Sheets,3.48,Grade mismatch,
+RET-0213,2023-08-13,Client-066,Square/Rect Tubes,3.75,Surface rust,
+RET-0214,2021-02-13,Client-067,HR Coils,3.96,Wrong dimensions,
+RET-0215,2021-09-17,Client-052,SS Pipes,1.35,Wrong dimensions,VS12
+RET-0216,2022-03-11,Client-071,Spring Steel,4.07,Wrong dimensions,VS27
+RET-0217,2023-09-30,Client-062,Square/Rect Tubes,4.07,Grade mismatch,
+RET-0218,2021-07-03,Client-074,Angles & Channels,1.01,Edge damage,VS03
+RET-0219,2022-06-25,Client-025,GI Pipes,2.05,Surface rust,VS06
+RET-0220,2022-06-03,Client-060,HR Coils,3.82,Bend/warp,VS05
+RET-0221,2021-12-13,Client-001,Hex Bars,2.41,Bend/warp,VS19
+RET-0222,2022-06-28,Client-043,Hex Bars,3.5,Wrong dimensions,VS01
+RET-0223,2023-06-04,Client-067,Structural Steel,2.6,Wrong dimensions,VS12
+RET-0224,2022-04-29,Client-072,Spring Steel,1.19,Surface rust,VS19
+RET-0225,2021-12-14,Client-012,MS Sheets,1.44,Grade mismatch,
+RET-0226,2022-11-10,Client-075,HR Coils,2.63,Wrong dimensions,
+RET-0227,2022-01-23,Client-038,GI Pipes,4.09,Bend/warp,
+RET-0228,2021-07-25,Client-020,MS Flats,1.23,Surface rust,VS19
+RET-0229,2023-04-07,Client-073,Structural Steel,1.47,Bend/warp,
+RET-0230,2021-07-23,Client-019,CR Sheets,2.85,Surface rust,
+RET-0231,2023-07-16,Client-004,ERW Pipes,4.94,Wrong dimensions,VS11
+RET-0232,2021-10-20,Client-064,SS Sheets,1.72,Wrong dimensions,
+RET-0233,2023-08-07,Client-008,Spring Steel,2.45,Wrong dimensions,VS28
+RET-0234,2021-10-24,Client-003,Fasteners & Fittings,3.55,Wrong dimensions,VS12
+RET-0235,2022-12-11,Client-071,SS Pipes,2.89,Grade mismatch,
+RET-0236,2023-02-06,Client-052,Structural Steel,3.01,Weight short,VS19
+RET-0237,2023-05-31,Client-031,MS Rods,2.43,Weight short,VS16
+RET-0238,2021-07-25,Client-043,Hex Bars,2.46,Bend/warp,VS03
+RET-0239,2023-02-11,Client-043,Square/Rect Tubes,2.57,Bend/warp,
+RET-0240,2023-12-17,Client-069,GI Sheets,4.39,Wrong dimensions,
+RET-0241,2023-03-14,Client-034,GI Pipes,1.69,Wrong dimensions,VS12
+RET-0242,2023-04-09,Client-015,Structural Steel,4.93,Grade mismatch,
+RET-0243,2022-12-13,Client-050,Spring Steel,3.82,Edge damage,
+RET-0244,2022-05-25,Client-020,Fasteners & Fittings,2.99,Surface rust,
+RET-0245,2023-12-07,Client-032,MS Pipes,0.54,Wrong dimensions,VS12
+RET-0246,2021-02-19,Client-040,Hex Bars,4.31,Surface rust,VS21
+RET-0247,2021-08-27,Client-063,Fasteners & Fittings,4.26,Edge damage,VS01
+RET-0248,2022-03-30,Client-038,SS Pipes,0.26,Edge damage,VS19
+RET-0249,2023-02-21,Client-008,SS Sheets,4.45,Bend/warp,VS03
+RET-0250,2023-02-16,Client-066,Angles & Channels,1.95,Edge damage,
+RET-0251,2021-06-25,Client-000,MS Pipes,3.94,Bend/warp,
+RET-0252,2022-12-22,Client-036,MS Flats,0.67,Grade mismatch,VS19
+RET-0253,2021-03-30,Client-052,GI Wire,4.41,Edge damage,VS08
+RET-0254,2023-01-03,Client-048,GI Sheets,2.09,Edge damage,
+RET-0255,2022-09-20,Client-075,Angles & Channels,0.55,Surface rust,
+RET-0256,2022-05-17,Client-042,MS Rods,2.35,Weight short,
+RET-0257,2021-03-06,Client-023,MS Rods,2.15,Weight short,
+RET-0258,2021-12-19,Client-075,SS Sheets,2.06,Edge damage,
+RET-0259,2021-09-24,Client-066,Hex Bars,2.82,Weight short,
+RET-0260,2021-03-12,Client-039,GI Sheets,2.68,Weight short,
+RET-0261,2021-11-09,Client-030,MS Rods,4.35,Grade mismatch,
+RET-0262,2022-01-03,Client-002,MS Sheets,3.04,Edge damage,
+RET-0263,2022-04-17,Client-025,SS Pipes,1.45,Edge damage,
+RET-0264,2023-07-20,Client-023,MS Pipes,1.78,Bend/warp,VS31
+RET-0265,2023-10-21,Client-048,Square/Rect Tubes,3.24,Bend/warp,
+RET-0266,2022-03-12,Client-013,Fasteners & Fittings,4.83,Surface rust,
+RET-0267,2022-05-29,Client-048,MS Rods,4.98,Grade mismatch,VS12
+RET-0268,2022-03-20,Client-034,Square/Rect Tubes,4.36,Bend/warp,VS09
+RET-0269,2023-09-16,Client-040,SS Pipes,1.71,Bend/warp,VS31
+RET-0270,2021-09-30,Client-039,Square/Rect Tubes,1.74,Edge damage,
+RET-0271,2021-12-31,Client-038,Spring Steel,1.1,Edge damage,VS18
+RET-0272,2023-03-14,Client-015,Fasteners & Fittings,1.25,Bend/warp,VS12
+RET-0273,2022-08-06,Client-077,Spring Steel,4.95,Bend/warp,VS33
+RET-0274,2021-02-16,Client-054,Hex Bars,1.24,Surface rust,VS34
+RET-0275,2022-10-01,Client-041,ERW Pipes,2.96,Edge damage,VS16
+RET-0276,2022-09-07,Client-033,GI Pipes,2.39,Wrong dimensions,VS19
+RET-0277,2023-08-16,Client-043,Square/Rect Tubes,3.66,Bend/warp,VS12
+RET-0278,2021-06-10,Client-058,GI Pipes,4.15,Wrong dimensions,VS17
+RET-0279,2022-08-21,Client-078,GI Pipes,1.3,Surface rust,VS03
+RET-0280,2023-03-23,Client-021,MS Pipes,4.91,Surface rust,
+RET-0281,2023-05-28,Client-002,Hex Bars,2.84,Edge damage,VS08
+RET-0282,2023-11-10,Client-060,Structural Steel,1.86,Surface rust,
+RET-0283,2022-04-17,Client-057,MS Sheets,4.2,Bend/warp,VS26
+RET-0284,2022-10-16,Client-061,MS Rods,3.91,Surface rust,VS06
+RET-0285,2022-02-06,Client-067,GI Wire,2.11,Bend/warp,VS12
+RET-0286,2022-05-09,Client-015,Spring Steel,1.28,Wrong dimensions,
+RET-0287,2023-05-20,Client-066,Square/Rect Tubes,2.16,Surface rust,VS19
+RET-0288,2023-05-05,Client-072,MS Rods,2.48,Surface rust,VS12
+RET-0289,2022-05-06,Client-032,MS Rods,4.83,Edge damage,
+RET-0290,2021-08-30,Client-048,Square/Rect Tubes,0.93,Grade mismatch,VS12
+RET-0291,2021-07-06,Client-032,MS Sheets,4.6,Wrong dimensions,VS16
+RET-0292,2021-03-20,Client-031,MS Sheets,4.31,Weight short,
+RET-0293,2023-01-27,Client-076,MS Rods,0.29,Surface rust,VS27
+RET-0294,2022-04-23,Client-017,GI Sheets,4.05,Surface rust,VS12
+RET-0295,2021-10-09,Client-065,MS Flats,3.48,Edge damage,VS21
+RET-0296,2023-09-04,Client-022,GI Wire,2.45,Edge damage,VS06
+RET-0297,2022-03-11,Client-055,HR Coils,4.7,Grade mismatch,
+RET-0298,2021-12-13,Client-032,MS Pipes,4.0,Bend/warp,VS12
+RET-0299,2023-03-16,Client-022,SS Pipes,4.43,Edge damage,VS19
+RET-0300,2021-05-19,Client-027,GI Wire,0.48,Weight short,
+RET-0301,2023-10-25,Client-047,HR Coils,4.15,Wrong dimensions,
+RET-0302,2023-06-26,Client-036,Angles & Channels,2.2,Surface rust,
+RET-0303,2021-06-06,Client-052,HR Coils,2.33,Wrong dimensions,VS18
+RET-0304,2022-10-12,Client-065,GI Pipes,3.13,Edge damage,VS19
+RET-0305,2021-09-22,Client-027,SS Sheets,1.76,Edge damage,
+RET-0306,2022-02-03,Client-016,MS Flats,4.16,Grade mismatch,VS28
+RET-0307,2023-06-15,Client-010,MS Pipes,4.19,Wrong dimensions,VS19
+RET-0308,2023-12-04,Client-042,SS Sheets,4.25,Wrong dimensions,VS30
+RET-0309,2022-07-11,Client-079,GI Pipes,0.53,Edge damage,
+RET-0310,2023-03-08,Client-033,Spring Steel,0.35,Weight short,VS09
+RET-0311,2022-11-07,Client-009,CR Sheets,0.74,Bend/warp,VS12
+RET-0312,2023-07-02,Client-044,ERW Pipes,3.88,Bend/warp,
+RET-0313,2023-07-20,Client-029,Square/Rect Tubes,0.68,Grade mismatch,
+RET-0314,2022-10-26,Client-034,HR Coils,4.47,Wrong dimensions,VS17
+RET-0315,2022-11-18,Client-074,CR Sheets,4.95,Edge damage,VS04
+RET-0316,2021-09-08,Client-060,Angles & Channels,2.84,Wrong dimensions,
+RET-0317,2023-01-01,Client-030,GI Sheets,3.82,Edge damage,VS03
+RET-0318,2022-04-04,Client-049,MS Sheets,0.8,Weight short,VS11
+RET-0319,2023-02-23,Client-018,Angles & Channels,4.45,Weight short,VS25
+RET-0320,2023-03-02,Client-069,MS Rods,3.49,Wrong dimensions,VS29
+RET-0321,2022-09-15,Client-044,GI Sheets,0.49,Grade mismatch,VS19
+RET-0322,2023-01-24,Client-023,Fasteners & Fittings,3.95,Grade mismatch,VS34
+RET-0323,2021-03-02,Client-065,MS Flats,1.29,Bend/warp,VS19
+RET-0324,2021-02-24,Client-046,SS Pipes,3.19,Grade mismatch,VS28
+RET-0325,2022-09-21,Client-057,MS Rods,3.79,Weight short,VS02
+RET-0326,2021-12-19,Client-059,MS Flats,0.12,Wrong dimensions,VS25
+RET-0327,2023-08-05,Client-057,ERW Pipes,1.85,Bend/warp,VS33
+RET-0328,2021-05-20,Client-004,Spring Steel,2.48,Edge damage,VS09
+RET-0329,2021-05-04,Client-006,CR Sheets,4.44,Weight short,
+RET-0330,2021-03-14,Client-061,MS Rods,4.98,Wrong dimensions,VS17
+RET-0331,2021-04-25,Client-034,Square/Rect Tubes,0.16,Bend/warp,
+RET-0332,2021-08-26,Client-079,Structural Steel,3.77,Surface rust,
+RET-0333,2022-02-05,Client-062,GI Pipes,4.56,Grade mismatch,VS26
+RET-0334,2021-06-27,Client-016,MS Rods,4.48,Surface rust,VS17
+RET-0335,2023-04-14,Client-061,GI Wire,0.42,Surface rust,VS18
+RET-0336,2022-04-26,Client-053,Angles & Channels,1.9,Edge damage,VS12
+RET-0337,2022-06-22,Client-001,ERW Pipes,3.29,Surface rust,VS13
+RET-0338,2021-07-13,Client-042,Hex Bars,0.88,Grade mismatch,VS03
+RET-0339,2021-06-01,Client-049,Structural Steel,4.39,Edge damage,VS19
+RET-0340,2022-04-07,Client-037,GI Pipes,0.83,Edge damage,
+RET-0341,2023-04-25,Client-038,Structural Steel,1.97,Edge damage,
+RET-0342,2022-08-29,Client-006,Structural Steel,3.97,Surface rust,VS12
+RET-0343,2022-05-31,Client-068,Structural Steel,4.44,Wrong dimensions,
+RET-0344,2021-10-08,Client-058,Spring Steel,0.89,Grade mismatch,
+RET-0345,2022-07-11,Client-013,Structural Steel,3.31,Bend/warp,
+RET-0346,2023-01-07,Client-054,MS Rods,3.73,Grade mismatch,VS19
+RET-0347,2023-08-19,Client-028,Angles & Channels,4.05,Wrong dimensions,VS03
+RET-0348,2023-09-02,Client-062,MS Flats,4.67,Surface rust,VS18
+RET-0349,2021-03-14,Client-067,GI Sheets,1.48,Edge damage,VS31
+RET-0350,2022-11-06,Client-068,MS Sheets,0.12,Weight short,VS03
+RET-0351,2022-03-03,Client-033,CR Sheets,3.1,Grade mismatch,
+RET-0352,2023-09-06,Client-050,GI Pipes,4.77,Bend/warp,
+RET-0353,2022-07-21,Client-078,Fasteners & Fittings,2.23,Weight short,VS19
+RET-0354,2021-08-02,Client-043,GI Wire,0.5,Bend/warp,VS03
+RET-0355,2021-11-15,Client-064,GI Sheets,0.9,Bend/warp,VS12
+RET-0356,2022-01-24,Client-003,MS Rods,2.77,Surface rust,VS16
+RET-0357,2022-07-13,Client-068,Spring Steel,4.46,Grade mismatch,VS01
+RET-0358,2021-07-11,Client-064,ERW Pipes,0.2,Weight short,VS12
+RET-0359,2022-05-20,Client-059,GI Pipes,4.62,Wrong dimensions,
+RET-0360,2021-10-31,Client-066,Fasteners & Fittings,0.62,Grade mismatch,VS12
+RET-0361,2021-08-13,Client-029,Fasteners & Fittings,4.57,Wrong dimensions,
+RET-0362,2021-12-08,Client-057,GI Wire,0.66,Surface rust,VS19
+RET-0363,2021-02-13,Client-055,MS Rods,1.44,Edge damage,VS34
+RET-0364,2021-08-25,Client-044,SS Sheets,4.39,Weight short,VS03
+RET-0365,2022-12-19,Client-023,GI Sheets,1.78,Weight short,VS19
+RET-0366,2023-03-19,Client-061,Spring Steel,4.08,Wrong dimensions,VS32
+RET-0367,2023-03-07,Client-004,SS Pipes,1.2,Wrong dimensions,VS12
+RET-0368,2022-06-25,Client-012,Structural Steel,1.4,Edge damage,
+RET-0369,2023-01-23,Client-044,GI Pipes,3.26,Surface rust,VS05
+RET-0370,2023-03-20,Client-039,HR Coils,2.49,Bend/warp,
+RET-0371,2023-06-07,Client-077,SS Pipes,4.89,Weight short,VS24
+RET-0372,2022-05-16,Client-037,HR Coils,0.55,Wrong dimensions,VS33
+RET-0373,2021-03-07,Client-065,GI Wire,0.53,Edge damage,VS19
+RET-0374,2023-05-17,Client-003,MS Rods,4.85,Grade mismatch,VS03
+RET-0375,2023-01-20,Client-033,SS Pipes,4.66,Weight short,VS14
+RET-0376,2022-03-26,Client-067,GI Wire,0.4,Grade mismatch,VS12
+RET-0377,2022-06-24,Client-033,SS Sheets,0.56,Bend/warp,VS12
+RET-0378,2021-11-22,Client-037,ERW Pipes,1.28,Grade mismatch,VS32
+RET-0379,2023-11-20,Client-025,SS Sheets,0.79,Grade mismatch,

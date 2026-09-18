@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Negotiation brief — {{ b.supplier_name }} ({{ b.supplier_id }})</title>
+<style>
+  @page { size: A4; margin: 12mm 13mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font: 9.2pt/1.38 "Segoe UI", system-ui, -apple-system, Arial, sans-serif; color: #16181d; background: #fff; }
+  .page { break-after: page; }
+  .page:last-child { break-after: auto; }
+  h1 { font-size: 17pt; margin: 0; letter-spacing: -.01em; }
+  h2 { font-size: 8.4pt; text-transform: uppercase; letter-spacing: .08em; color: #5b6170; margin: 11pt 0 5pt; font-weight: 650; }
+  .muted { color: #5b6170; }
+  .mono, td.n, .n { font-variant-numeric: tabular-nums; }
+  .head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #16181d; padding-bottom: 6pt; }
+  .head .meta { text-align: right; font-size: 8.4pt; }
+  .tag { display: inline-block; font-size: 7.6pt; font-weight: 650; padding: 1pt 6pt; border-radius: 3pt; background: #fde8e8; color: #9b1c1c; margin-left: 6pt; vertical-align: middle; }
+  .strip { display: grid; grid-template-columns: 1.25fr 1fr 1fr 1fr; gap: 6pt; margin-top: 9pt; }
+  .kpi { border: 1px solid #d9dce3; border-radius: 5pt; padding: 6pt 8pt; }
+  .kpi .l { font-size: 7.4pt; color: #5b6170; text-transform: uppercase; letter-spacing: .06em; }
+  .kpi .v { font-size: 13.5pt; font-weight: 700; margin-top: 1pt; }
+  .kpi.hero { background: #16181d; color: #fff; border-color: #16181d; }
+  .kpi.hero .l { color: #b8bdc9; }
+  table { width: 100%; border-collapse: collapse; }
+  .calc td { padding: 2.2pt 0; border-bottom: 1px dotted #d9dce3; }
+  .calc td.n { text-align: right; white-space: nowrap; padding-left: 10pt; }
+  .calc tr.sum td { border-top: 1.5px solid #16181d; border-bottom: none; font-weight: 700; padding-top: 4pt; }
+  .calc tr.sub td { color: #5b6170; font-size: 8.4pt; }
+  .calc .f { font-family: Consolas, "JetBrains Mono", monospace; font-size: 7.8pt; color: #5b6170; }
+  ol.asks { margin: 0; padding: 0; list-style: none; counter-reset: a; }
+  ol.asks li { counter-increment: a; display: grid; grid-template-columns: 18pt 1fr; gap: 0 6pt; padding: 5pt 0; border-bottom: 1px solid #eceef2; }
+  ol.asks li::before { content: counter(a); grid-row: span 2; width: 16pt; height: 16pt; border-radius: 50%; background: #16181d; color: #fff; font-weight: 700; font-size: 8.4pt; display: flex; align-items: center; justify-content: center; }
+  .ask { font-weight: 600; }
+  .ask .t { color: #9b1c1c; font-weight: 700; margin-right: 4pt; }
+  .ev { font-size: 8.3pt; color: #3d4250; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14pt; }
+  ul.tight { margin: 0; padding-left: 12pt; }
+  ul.tight li { margin: 2pt 0; }
+  .grid td, .grid th { padding: 3pt 4pt; border-bottom: 1px solid #eceef2; text-align: left; }
+  .grid th { font-size: 7.4pt; text-transform: uppercase; letter-spacing: .05em; color: #5b6170; font-weight: 650; border-bottom: 1.5px solid #16181d; }
+  .grid td.n, .grid th.n { text-align: right; white-space: nowrap; }
+  .grid td.nw { white-space: nowrap; }
+  .grid.ev-table { font-size: 8.3pt; }
+  .flag { color: #9b1c1c; font-weight: 600; }
+  .foot { margin-top: 10pt; font-size: 7.4pt; color: #5b6170; border-top: 1px solid #d9dce3; padding-top: 5pt; }
+  @media screen { body { background: #e9ebef; } .page { background: #fff; width: 210mm; min-height: 297mm; margin: 12px auto; padding: 12mm 13mm; box-shadow: 0 2px 12px rgba(0,0,0,.12); } }
+</style>
+</head>
+<body>
+{% set m = b.money %}
+<section class="page">
+  <div class="head">
+    <div>
+      <div class="muted" style="font-size:8.4pt;letter-spacing:.06em;text-transform:uppercase">Arora Traders · Supplier negotiation brief · Confidential</div>
+      <h1>{{ b.supplier_name }} <span class="muted" style="font-weight:500">{{ b.supplier_id }}</span>{% if b.replace %}<span class="tag">Replacement candidate</span>{% endif %}</h1>
+    </div>
+    <div class="meta">
+      {% if b.contact %}{{ b.contact }}{% endif %}{% if b.city %} · {{ b.city }}{% endif %}<br>
+      Period {{ b.period }} · Prepared {{ b.generated }}
+    </div>
+  </div>
+
+  <div class="strip">
+    <div class="kpi hero"><div class="l">Quantified cost to us, 3 years</div><div class="v">{{ m.total_impact | inr }}</div></div>
+    <div class="kpi"><div class="l">Scorecard</div><div class="v">{{ "%.0f"|format(b.score) }}<span class="muted" style="font-size:9pt">/100</span></div></div>
+    <div class="kpi"><div class="l">Panel rank</div><div class="v">{{ b.rank }}<span class="muted" style="font-size:9pt"> of {{ b.n_suppliers }}</span></div></div>
+    <div class="kpi"><div class="l">Short-delivered</div><div class="v">{{ "%.1f"|format(m.short_pct) }}%</div></div>
+  </div>
+
+  <h2>What we are asking for</h2>
+  <ol class="asks">
+    {% for a in b.asks %}
+    <li><div class="ask"><span class="t">{{ a.topic }}.</span>{{ a.ask }}</div><div class="ev">{{ a.evidence }}</div></li>
+    {% endfor %}
+  </ol>
+
+  <div class="two">
+    <div>
+      <h2>How the figure is built</h2>
+      <table class="calc">
+        <tr><td>Billed on {{ m.orders }} orders <span class="f">Σ invoice_amount_billed</span></td><td class="n">{{ m.billed | inr }}</td></tr>
+        <tr><td>Less value actually received <span class="f">Σ qty_received × unit_price</span></td><td class="n">− {{ m.received_value | inr }}</td></tr>
+        <tr><td><b>A · Short delivery</b></td><td class="n"><b>{{ m.short_loss | inr }}</b></td></tr>
+        <tr class="sub"><td>&nbsp;&nbsp;Returns recorded against you ({{ m.returns_recorded_n }}, {{ "%.1f"|format(m.returns_recorded_qty) }} MT)</td><td class="n">{{ m.returns_recorded_loss | inr }}</td></tr>
+        <tr class="sub"><td>&nbsp;&nbsp;Untraced returns, attributed by model (≈{{ "%.0f"|format(m.returns_inferred_expected) }})</td><td class="n">{{ m.returns_inferred_loss | inr }}</td></tr>
+        <tr><td><b>B · Customer returns</b></td><td class="n"><b>{{ m.return_loss | inr }}</b></td></tr>
+        <tr class="sum"><td>A + B</td><td class="n">{{ m.rubric_core_total | inr }}</td></tr>
+        <tr class="sub"><td>+ Rejected at our inspection ({{ "%.1f"|format(m.qty_rejected) }} MT)</td><td class="n">{{ m.reject_loss | inr }}</td></tr>
+        <tr class="sub"><td>+ Return handling ({{ "%.0f"|format(m.handling_pct) }}% of return value)</td><td class="n">{{ m.handling_loss | inr }}</td></tr>
+        <tr class="sub"><td>+ Price premium {% if not m.premium_significant %}(not statistically established — ₹0){% endif %}</td><td class="n">{{ m.premium_loss | inr }}</td></tr>
+        <tr class="sum"><td>Total quantified</td><td class="n">{{ m.total_impact | inr }}</td></tr>
+      </table>
+    </div>
+    <div>
+      <h2>Expect them to say</h2>
+      <ul class="tight">
+        {% for p in b.pushback %}<li>{{ p }}</li>{% endfor %}
+      </ul>
+      <h2>Weakest dimensions</h2>
+      <div>{{ b.drivers | join(" · ") if b.drivers else "None below panel median" }}</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    A is the problem-statement formula verbatim: invoice_amount_billed − quantity_received × unit_price_quoted, summed over every purchase order.
+    B values each return at this supplier's own median price for that material. Untraced returns (no supplier recorded) are split by a model validated on the
+    returns that were recorded; they are shown for completeness and are not part of any credit claimed above. Relationship length is not used in scoring.
+  </div>
+</section>
+
+<section class="page">
+  <div class="head">
+    <div><h1 style="font-size:13pt">{{ b.supplier_name }} · Evidence</h1></div>
+    <div class="meta">Page 2 — for reference during the meeting</div>
+  </div>
+
+  <h2>Purchase orders to put on the table</h2>
+  <table class="grid ev-table">
+    <tr><th>PO</th><th>Date</th><th>Material</th><th class="n">Ordered MT</th><th class="n">Received MT</th><th class="n">Rejected MT</th><th class="n">Rate ₹/MT</th><th class="n">Billed</th><th class="n">Received value</th><th class="n">Short ₹</th><th class="n">Days late</th></tr>
+    {% for e in b.evidence %}
+    <tr><td class="mono nw">{{ e.po_id }}</td><td class="nw">{{ e.date }}</td><td>{{ e.material }}</td>
+      <td class="n">{{ "%.2f"|format(e.ordered) }}</td><td class="n">{{ "%.2f"|format(e.received) }}</td><td class="n">{{ "%.2f"|format(e.rejected) }}</td>
+      <td class="n">{{ e.price | inr }}</td><td class="n">{{ e.billed | inr }}</td><td class="n">{{ e.received_value | inr }}</td>
+      <td class="n"><b>{{ e.short_loss | inr }}</b></td><td class="n">{{ e.days_late if e.days_late is not none else "-" }}</td></tr>
+    {% endfor %}
+  </table>
+  <div class="ev" style="margin-top:3pt">Short ₹ = Billed − Received value. Each line can be checked against the supplier's own invoice and our GRN.</div>
+
+  <h2>By material — where it goes wrong</h2>
+  <table class="grid">
+    <tr><th>Material</th><th class="n">Orders</th><th class="n">Spend</th><th class="n">Short %</th><th class="n">Avg days late</th><th class="n">Rejected + returned %</th><th class="n">Leakage ₹</th><th>Flag vs panel</th></tr>
+    {% for r in b.materials %}
+    <tr><td>{{ r.material }}</td><td class="n">{{ r.orders }}</td><td class="n">{{ r.spend | lakh }}</td>
+      <td class="n">{{ "%.1f"|format(r.short_pct) }}</td><td class="n">{{ "%.1f"|format(r.days_late) }}</td><td class="n">{{ "%.1f"|format(r.quality_pct) }}</td>
+      <td class="n">{{ r.leakage | inr }}</td><td class="flag">{{ r.flags | join(", ") }}</td></tr>
+    {% endfor %}
+  </table>
+
+  <div class="foot">
+    Generated automatically from purchase_orders, goods_receipts, customer_returns and payment_records. Scorecard dimensions: short delivery, late delivery,
+    quality rejection (inspection + attributed customer returns), price premium vs other suppliers on the panel for the same material and quarter.
+  </div>
+</section>
+</body>
+</html>

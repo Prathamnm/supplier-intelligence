@@ -1,0 +1,35 @@
+supplier_id,supplier_name,material_categories,city,years_of_relationship,contact_name,credit_days_agreed,is_underperformer
+VS01,Jindal Steel & Power,"ERW Pipes,MS Pipes,CR Sheets",Mumbai,9,Sunil Mehta,15,False
+VS02,SAIL Distribution,"Spring Steel,SS Pipes,GI Wire",Pune,2,Rajesh Shah,21,False
+VS03,Tata Steel Service,Hex Bars,Rajkot,2,Vikas Sharma,21,True
+VS04,Shyam Metalics,"Spring Steel,GI Wire,HR Coils",Surat,10,Rajesh Shah,21,False
+VS05,Bhushan Steel,"GI Wire,MS Flats,CR Sheets",Mumbai,8,Anil Gupta,15,False
+VS06,APL Apollo Tubes,MS Rods,Pune,13,Anil Gupta,30,False
+VS07,Prakash Industries,Fasteners & Fittings,Rajkot,5,Ramesh Patel,15,False
+VS08,Ratnamani Metals,"SS Sheets,Angles & Channels,GI Sheets",Raipur,4,Rajesh Shah,21,False
+VS09,MSP Steel,"SS Pipes,HR Coils",Kolkata,5,Ramesh Patel,30,False
+VS10,Gallantt Metal,"Angles & Channels,MS Sheets",Nagpur,13,Sunil Mehta,30,False
+VS11,Sai Steel,"SS Pipes,MS Sheets,HR Coils",Mumbai,16,Ramesh Patel,30,False
+VS12,Nutan Tubes,"Spring Steel,HR Coils,MS Flats",Kolkata,3,Sunil Mehta,15,True
+VS13,Radhe Alloys,"MS Rods,CR Sheets",Pune,8,Vikas Sharma,30,False
+VS14,Sunrise Metals,Structural Steel,Surat,16,Sunil Mehta,30,False
+VS15,Western Steel,HR Coils,Raipur,10,Nikhil Joshi,45,False
+VS16,Garg Enterprises,"MS Rods,Angles & Channels,HR Coils",Mumbai,18,Ramesh Patel,15,False
+VS17,Modern Metals,ERW Pipes,Mumbai,7,Nikhil Joshi,45,False
+VS18,Kumar Hardware,"SS Pipes,MS Rods,Hex Bars",Rajkot,16,Vikas Sharma,30,False
+VS19,Thakur Steel,"MS Pipes,ERW Pipes,CR Sheets",Kolkata,12,Rajesh Shah,30,True
+VS20,Bhavani Metals,"MS Sheets,Fasteners & Fittings",Pune,10,Vikas Sharma,21,False
+VS21,Viraj Profiles,"ERW Pipes,SS Sheets,GI Sheets",Mumbai,13,Sunil Mehta,15,False
+VS22,Ratan Steel,"MS Flats,Structural Steel,MS Pipes",Pune,13,Anil Gupta,21,False
+VS23,Krishna Pipes,HR Coils,Rajkot,4,Rajesh Shah,45,False
+VS24,Om Metals,Spring Steel,Kolkata,6,Sunil Mehta,45,False
+VS25,Laxmi Hardware,"MS Sheets,CR Sheets,GI Wire",Mumbai,8,Nikhil Joshi,30,False
+VS26,Rajdhani Steel,"Angles & Channels,Fasteners & Fittings",Rajkot,16,Rajesh Shah,21,False
+VS27,National Pipes,SS Pipes,Nagpur,2,Vikas Sharma,21,False
+VS28,Param Industries,"HR Coils,MS Pipes,SS Pipes",Raipur,3,Sunil Mehta,15,False
+VS29,Global Metals,MS Flats,Pune,18,Sunil Mehta,30,False
+VS30,Apex Hardware,"Structural Steel,GI Sheets,Square/Rect Tubes",Raipur,17,Sunil Mehta,45,False
+VS31,Sunrise Alloys,"GI Sheets,ERW Pipes",Pune,15,Anil Gupta,45,False
+VS32,Precision Steel,"Fasteners & Fittings,GI Pipes",Raipur,5,Rajesh Shah,45,False
+VS33,Premium Metals,"MS Flats,ERW Pipes,HR Coils",Mumbai,8,Vikas Sharma,45,False
+VS34,Supreme Fittings,GI Wire,Mumbai,10,Ramesh Patel,21,False
