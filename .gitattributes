@@ -2,3 +2,9 @@
 * text=auto eol=lf
 *.pdf binary
 *.png binary
+
+# Generated files: collapsed in GitHub diffs and excluded from language stats.
+web/package-lock.json linguist-generated=true
+web/src/data/*.json linguist-generated=true
+web/public/briefs/* linguist-generated=true
+evaluation/REPORT.md linguist-generated=true
