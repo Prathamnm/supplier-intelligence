@@ -4,3 +4,7 @@
   base = "web"
   command = "npm run build"
   publish = "dist"
+
+[build.environment]
+  # Vite 7 needs Node 20.19+.
+  NODE_VERSION = "22"

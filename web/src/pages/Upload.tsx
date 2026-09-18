@@ -66,6 +66,15 @@ export default function Upload() {
   const [elapsed, setElapsed] = useState(0)
   const input = useRef<HTMLInputElement>(null)
 
+  // A hosted API on a free tier sleeps when idle and takes up to a minute to
+  // wake. Say so after a few seconds instead of looking stuck.
+  const [slow, setSlow] = useState(false)
+  useEffect(() => {
+    if (server !== 'checking') return
+    const t = setTimeout(() => setSlow(true), 3000)
+    return () => clearTimeout(t)
+  }, [server])
+
   useEffect(() => {
     Promise.all([getSchema(), getSamples()])
       .then(([s, samp]) => {
@@ -151,6 +160,13 @@ export default function Upload() {
           returns. File names don’t matter; each file is recognised by its columns. Excel and Tally exports work as they are.
         </p>
       </section>
+
+      {server === 'checking' && slow && (
+        <Card className="flex items-center gap-3 p-5 text-sm text-ink-2">
+          <span className="size-4 shrink-0 animate-spin rounded-full border-2 border-accent border-t-transparent" aria-hidden />
+          Waking up the analysis server — this can take up to a minute the first time.
+        </Card>
+      )}
 
       {server === 'down' && (
         <Card className="border-warn/40 p-5">
