@@ -2,18 +2,16 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDataset, useDetail } from '../lib/dataset'
 import { date, frac, inrShort, num } from '../lib/format'
-import type { Score } from '../lib/types'
 import { Card, Explain, Pill, Section, Stat } from '../components/ui'
 
-type MetricKey = 'value' | 'top3' | 'top1'
+type MetricKey = 'misallocation' | 'top3' | 'top1'
 
-// Every measure is shown "higher is better", so the chart reads the same way whichever is picked.
-const METRICS: { key: MetricKey; label: string; get: (s: Score) => number; note: string }[] = [
-  { key: 'value', label: 'Money on the right supplier', get: (s) => 1 - s.misallocation,
-    note: 'Of the value of the hidden returns, how much ended up charged to the right supplier once everything is added up. This is what the rupee totals depend on.' },
-  { key: 'top3', label: 'Right supplier in top 3', get: (s) => s.top3,
+const METRICS: { key: MetricKey; label: string; better: 'low' | 'high'; note: string }[] = [
+  { key: 'misallocation', label: 'Value misallocated', better: 'low',
+    note: 'Share of the hidden returns’ value that ends up charged to the wrong supplier, once everything is added up per supplier. This is what the rupee totals depend on.' },
+  { key: 'top3', label: 'Right supplier in top 3', better: 'high',
     note: 'How often the real supplier was among the method’s three most likely suppliers.' },
-  { key: 'top1', label: 'Right on first guess', get: (s) => s.top1,
+  { key: 'top1', label: 'Right supplier ranked first', better: 'high',
     note: 'How often the real supplier was the method’s single top pick. Hard for any method: nothing on a return says which delivery it came from.' },
 ]
 
@@ -22,7 +20,7 @@ export default function Attribution() {
   const returns = useDetail()?.returns
   const a = summary.attribution
   const { counts } = summary
-  const [metric, setMetric] = useState<MetricKey>('value')
+  const [metric, setMetric] = useState<MetricKey>('misallocation')
   const [filter, setFilter] = useState('')
 
   const methods = [
@@ -30,6 +28,7 @@ export default function Attribution() {
     ...Object.entries(a.baselines).map(([key, b]) => ({ key, ...b })),
   ]
   const m = METRICS.find((x) => x.key === metric)!
+  const max = Math.max(...methods.map((x) => x[metric]), 0.01)
   const rule = a.baselines.most_recent_batch
 
   const coefs = Object.entries(a.coefficients).sort((p, q) => Math.abs(q[1]) - Math.abs(p[1]))
@@ -58,8 +57,8 @@ export default function Attribution() {
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {rule && (
-          <Stat tone="good" label="Money on the right supplier" value={frac(1 - a.metrics.misallocation)}
-            sub={<>When tested on returns where we know the answer. The assignment’s suggested rule: {frac(1 - rule.misallocation)}</>} />
+          <Stat tone="good" label="Value misallocated" value={frac(a.metrics.misallocation, 1)}
+            sub={<>Charged to the wrong supplier when tested (lower is better). The assignment’s suggested rule: {frac(rule.misallocation)}</>} />
         )}
         {rule && <Stat label="Right supplier in our top 3" value={frac(a.metrics.top3)} sub={<>The suggested rule: {frac(rule.top3)}</>} />}
         <Stat label="Tested on" value={`${a.metrics.n ?? 0} returns`} sub="Each one’s supplier hidden, guessed, then checked" />
@@ -81,21 +80,21 @@ export default function Attribution() {
         <Card className="p-5">
           <div className="space-y-3">
             {methods.map((x) => {
-              const v = m.get(x)
+              const v = x[metric]
               return (
-                <div key={x.key} className="grid grid-cols-[1fr_4rem] items-center gap-3 sm:grid-cols-[23rem_1fr_4rem]">
-                  <div className="text-sm text-ink-2 sm:truncate" title={x.label}>
+                <div key={x.key} className="grid grid-cols-[1fr_4rem] items-center gap-3 sm:grid-cols-[minmax(0,24rem)_1fr_4rem]">
+                  <div className="text-sm leading-snug text-ink-2">
                     {x.key === 'model' ? <span className="font-medium text-ink">Our model</span> : x.label}
                   </div>
                   <div className="order-last col-span-2 h-4 rounded-[4px] bg-surface-2 sm:order-none sm:col-span-1">
-                    <div className="h-full rounded-[4px]" style={{ width: `${Math.max(v, 0) * 100}%`, background: x.key === 'model' ? 'var(--color-accent)' : 'var(--color-ink-3)' }} />
+                    <div className="h-full rounded-[4px]" style={{ width: `${(v / max) * 100}%`, background: x.key === 'model' ? 'var(--color-accent)' : 'var(--color-ink-3)' }} />
                   </div>
-                  <div className="num text-right text-sm font-medium">{frac(v)}</div>
+                  <div className="num text-right text-sm font-medium">{frac(v, 1)}</div>
                 </div>
               )
             })}
           </div>
-          <p className="mt-4 border-t border-line pt-3 text-xs text-ink-3">{m.note}</p>
+          <p className="mt-4 border-t border-line pt-3 text-xs text-ink-3">{m.note} {m.better === 'low' ? 'Lower is better.' : 'Higher is better.'}</p>
         </Card>
         <p className="mt-3 max-w-3xl text-sm leading-relaxed text-ink-2">
           Why not simply blame whoever delivered that material most recently, as the assignment suggests? Because in this data that’s

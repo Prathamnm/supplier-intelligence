@@ -56,7 +56,7 @@ export default function Overview() {
         <Stat
           label="Returns with no supplier recorded"
           value={`${counts.returns_blank} of ${counts.returns}`}
-          sub={<>Traced to their likely supplier; {frac(1 - attribution.metrics.misallocation)} of the value lands on the right one when tested</>}
+          sub={<>Traced to their likely supplier; {frac(attribution.metrics.misallocation, 1)} of the value misallocated when tested</>}
         />
         {validation.available && validation.flagged.length > 0 ? (
           <Stat
