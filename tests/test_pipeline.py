@@ -165,3 +165,28 @@ def test_no_false_alarms_when_nobody_is_bad(tmp_path):
     assert (r.sc["band"] != "act").all(), r.sc.loc[r.sc["band"] == "act", ["supplier_id", "score"]]
     assert summary["validation"]["flagged"] == []
     assert summary["premium"]["significant"] == []
+
+
+def test_indian_spreadsheet_exports_give_the_same_answer(tmp_path):
+    """DD/MM/YYYY dates, 12,34,567.89 amounts, a BOM, extra and reordered columns,
+    stray spaces: the rupee figures must match the clean files exactly."""
+    from evaluation.generate import Profile, Scenario, generate
+    base = dict(n_suppliers=12, n_orders=900, seed=5, bad={"S003": Profile(short=0.04)},
+                name="t", title="t", purpose="t")
+    generate(Scenario(**base), tmp_path / "clean")
+    generate(Scenario(**base, export="indian"), tmp_path / "excel")
+    clean = run_stages(tmp_path / "clean" / "raw")
+    excel = run_stages(tmp_path / "excel" / "raw")
+    a = clean.totals.set_index("supplier_id")["short_loss"].sort_index()
+    b = excel.totals.set_index("supplier_id")["short_loss"].sort_index()
+    pd.testing.assert_series_equal(a, b)
+    assert excel.fact["po_date"].equals(clean.fact["po_date"])          # day-first read correctly
+
+
+def test_unparseable_numbers_stop_the_run(tmp_path):
+    raw = make_synthetic(tmp_path / "raw")
+    po = pd.read_csv(raw / "Book1.csv")
+    po["unit_price_quoted"] = "call supplier"
+    po.to_csv(raw / "Book1.csv", index=False)
+    with pytest.raises(PipelineError, match="unit_price_quoted"):
+        load.load_all(raw, Quality())

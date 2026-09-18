@@ -42,6 +42,12 @@ FILES = {
 # modelling code, and re-read only at the very end for blind validation.
 LABEL_COLUMN = "is_underperformer"
 
+# -------------------------------------------------------------- loading
+
+# A required date or number column with more than this share of values that
+# cannot be parsed stops the run: continuing would produce confident nonsense.
+MAX_UNPARSEABLE_SHARE = 0.05
+
 # ---------------------------------------------------------- attribution
 
 # Every supplier that delivered anything before the return date is a

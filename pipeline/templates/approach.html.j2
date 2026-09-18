@@ -50,7 +50,7 @@
 <table>
   <tr><th>Deliverable</th><th>Where</th><th>In one line</th></tr>
   <tr><td>D1 · Cleaning + attribution</td><td><code>pipeline/load.py</code>, <code>prepare.py</code>, <code>attribute.py</code></td><td>Files identified by column signature, typed, joined with row-count assertions; {{ s.counts.returns_blank }} untraced returns attributed by a validated model.</td></tr>
-  <tr><td>D2 · Scorecard</td><td>Web app → Overview; <code>output/scorecard.csv</code></td><td>Four dimensions, evidence-weighted, 0–100, per supplier and per supplier × material.</td></tr>
+  <tr><td>D2 · Scorecard</td><td>Web app → Overview; <code>scorecard.csv</code> written by the pipeline</td><td>Four dimensions, evidence-weighted, 0–100, per supplier and per supplier × material.</td></tr>
   <tr><td>D3 · ₹ impact</td><td>Web app → each supplier; <code>money.py</code></td><td>Problem-statement formula verbatim, then clearly separated additional losses.</td></tr>
   <tr><td>D4 · Briefs</td><td><code>web/public/briefs/*.pdf</code></td><td>Five two-page A4 briefs: numbered asks, arithmetic, evidence POs, expected pushback.</td></tr>
   <tr><td>D5 · Replace 3</td><td>Web app → Overview</td><td>{{ b.suppliers | join(", ") }}, with the best-scoring existing alternatives per material.</td></tr>
@@ -155,7 +155,7 @@
     <p><b>Nothing tuned to this dataset.</b> Files are found by their columns, not names; suppliers, materials and thresholds are discovered; every constant lives in <code>config.py</code> with its reasoning. A test runs the full pipeline on a synthetic dataset with different IDs, materials, file names and size, and checks it finds that dataset’s bad suppliers.</p>
   </div>
   <div>
-    <p><b>Tested on data with a known answer.</b> <code>python -m evaluation.run</code> generates four datasets in this schema with planted offenders and the true source of every return, and scores the unchanged pipeline: all planted offenders found in each, the right failure dimension named, rupee figures exact, attribution better than the problem statement’s rule on hidden returns, and no false alarms on a panel where nobody is bad (<code>evaluation/REPORT.md</code>).</p>
+    <p><b>Tested on data with a known answer.</b> <code>python -m evaluation.run</code> generates seven datasets in this schema with planted offenders and the true source of every return — including a 120-supplier panel, suppliers that deteriorate only in the final year, and files as Excel exports them in India (DD/MM/YYYY dates, 12,34,567.89 amounts) — and scores the unchanged pipeline: all planted offenders found in each, the right failure dimension named, rupee figures exact, attribution better than the problem statement’s rule on hidden returns, and no false alarms on a panel where nobody is bad (<code>evaluation/REPORT.md</code>).</p>
     <p><b>Fails loudly.</b> Missing files, mixed units and fanned-out joins stop the run with a specific message. Everything else the pipeline notices ({{ quality.findings | length }} findings on this data) is logged with the action taken and shown on the Method page.</p>
     <p><b>Stack.</b> Python (pandas, scikit-learn, SciPy, Jinja2) for analysis; React + TypeScript + Tailwind, built with Vite, for a static web app that does no computation and cannot go down. An automated test suite guards each claim made here.</p>
   </div>

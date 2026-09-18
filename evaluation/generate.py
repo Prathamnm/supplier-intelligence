@@ -42,6 +42,9 @@ class Profile:
     premium: float = 0.0        # systematic price premium, fraction
     # material -> overrides, for a supplier that is bad on one line only
     by_material: dict[str, dict] = field(default_factory=dict)
+    # ISO date from which the behaviour above applies; before it, a normal
+    # supplier. Models a supplier that deteriorated recently.
+    bad_from: str | None = None
 
 
 @dataclass
@@ -63,6 +66,13 @@ class Scenario:
     # two orders happened to go badly. The pipeline should not condemn them.
     unlucky: dict[str, Profile] = field(default_factory=dict)
     messy: bool = False
+    # "batch": a return comes from a specific delivery, weeks after it arrived.
+    # "propensity": as observed in the assignment data -- the supplier is
+    # drawn by volume x defect rate, but the returned material and date are
+    # unrelated to any particular batch.
+    returns: str = "batch"
+    # "iso" or "indian": how a spreadsheet/Tally export would actually look.
+    export: str = "iso"
     seed: int = 0
 
 
@@ -97,8 +107,11 @@ def generate(sc: Scenario, root: Path) -> dict:
     drift = 1 + 0.06 * np.sin((po_date - start).days.to_numpy() / 365 * 2 * np.pi)
 
     short, late, reject, prem, defect = (np.empty(n) for _ in range(5))
+    normal = Profile()
     for i, (s, m) in enumerate(zip(sup_col, mat, strict=True)):
         p = _profile(sc, s)
+        if p.bad_from and po_date[i] < pd.Timestamp(p.bad_from):
+            p = normal
         o = p.by_material.get(m, {})
         short[i] = max(0.0, rng.normal(o.get("short", p.short), max(o.get("short", p.short) * 0.35, 0.002)))
         late[i] = max(0.0, round(rng.normal(o.get("late", p.late), 1.0)))
@@ -147,7 +160,12 @@ def generate(sc: Scenario, root: Path) -> dict:
             rdate = receipt[i] + pd.Timedelta(days=int(rng.gamma(2.0, 25.0)) + 3)
             if rdate > start + pd.Timedelta(days=days):
                 continue
-            rows.append({"return_date": rdate, "material_id": mat[i],
+            if sc.returns == "propensity":
+                rdate = receipt[i] + pd.Timedelta(days=int(rng.integers(3, 300)))
+                if rdate > start + pd.Timedelta(days=days):
+                    continue
+            rows.append({"return_date": rdate,
+                         "material_id": mat[i] if sc.returns == "batch" else rng.choice(mats),
                          "quantity_returned": round(float(min(rng.uniform(0.1, 5), received[i])), 2),
                          "true_supplier": sup_col[i], "reason": rng.choice(REASONS)})
     ret = pd.DataFrame(rows).sort_values("return_date").reset_index(drop=True)
@@ -185,13 +203,17 @@ def generate(sc: Scenario, root: Path) -> dict:
     names = {k: k for k in frames}
     if sc.messy:
         frames, names = _make_messy(frames, rng)
-    for k, df in frames.items():
-        df.to_csv(raw / f"{names[k]}.csv", index=False)
+    if sc.export == "indian":
+        for k, df in frames.items():
+            _indian_export(df, rng).to_csv(raw / f"{names[k]}.csv", index=False, encoding="utf-8-sig")
+    else:
+        for k, df in frames.items():
+            df.to_csv(raw / f"{names[k]}.csv", index=False)
 
     truth = {
         "scenario": sc.name,
         "bad": {s: {"short": p.short, "late": p.late, "reject": p.reject, "defect": p.defect,
-                    "premium": p.premium, "by_material": p.by_material,
+                    "premium": p.premium, "by_material": p.by_material, "bad_from": p.bad_from,
                     "underperformer": _is_underperformer(p)} for s, p in sc.bad.items()},
         "return_truth": dict(zip(ret["return_id"], ret["true_supplier"], strict=True)),
         "blank_ids": ret.loc[~labelled, "return_id"].tolist(),
@@ -222,3 +244,34 @@ def _make_messy(frames: dict, rng) -> tuple[dict, dict]:
              "payment_records": "tally_payments", "market_price_index": "steel prices",
              "supplier_master": "vendors", "customer_returns": "Book1"}
     return frames, names
+
+
+DATE_COLS = {"po_date", "delivery_promised_date", "receipt_date", "invoice_date",
+             "actual_payment_date", "return_date"}
+MONEY_COLS = {"unit_price_quoted", "invoice_amount_billed", "market_price_per_mt"}
+ID_COLS = {"supplier_id", "supplier_id_traced", "po_id"}
+
+
+def _inr_grouping(x: float) -> str:
+    """1234567.5 -> '12,34,567.50', as Excel shows it with an en-IN locale."""
+    whole, frac = f"{x:.2f}".split(".")
+    head, tail = whole[:-3], whole[-3:]
+    groups = []
+    while len(head) > 2:
+        groups.insert(0, head[-2:])
+        head = head[:-2]
+    return ",".join(([head] if head else []) + groups + [tail]) + "." + frac
+
+
+def _indian_export(df: pd.DataFrame, rng) -> pd.DataFrame:
+    """How the same table looks exported from Excel/Tally in India."""
+    out = df.copy()
+    for c in out.columns:
+        if c in DATE_COLS:                       # 2023-04-02 -> 02/04/2023
+            out[c] = pd.to_datetime(out[c]).dt.strftime("%d/%m/%Y")
+        elif c in MONEY_COLS:                    # 2326836.99 -> "23,26,836.99"
+            out[c] = out[c].map(_inr_grouping)
+        elif c in ID_COLS:                       # stray spaces from manual entry
+            out[c] = out[c].map(lambda v: f" {v} " if isinstance(v, str) and rng.random() < 0.1 else v)
+    out["remarks"] = ""                          # an extra column nobody asked for
+    return out[list(reversed(out.columns))]      # and a different column order

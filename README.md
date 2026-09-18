@@ -28,7 +28,7 @@
 pip install -r requirements-dev.txt
 python -m pipeline.preflight      # optional: data audit, prints every assumption check
 python -m pipeline.run            # scorecard, attribution, JSON, CSVs, briefs, approach PDF
-python -m pytest                  # 38 tests: pipeline, web contract, upload API
+python -m pytest                  # 40 tests: pipeline, web contract, upload API
 python -m evaluation.run          # synthetic datasets with a known answer -> evaluation/REPORT.md
 ruff check pipeline tests
 
@@ -91,8 +91,11 @@ CSVs ─► 01 load ─► 02 join ─► 03 attribute ─► 04 rupees ─► 0
 | Each offender fails one way; one bad on a single material | 4/4, right dimension each time; single-material offender flagged only there | 12.0% vs 21.4% | exact |
 | Sparse & messy (15% labelled, duplicates, broken dates, tiny suppliers) | 3/3; unlucky 2-order supplier not condemned | 13.8% vs 26.4% | exact |
 | Control: nobody is bad | 0 false alarms | 19.2% vs 23.9% | exact |
+| Two suppliers go bad only in the final year | 4/4; both late deteriorators flagged, year view shows ₹24 L/yr → ₹1.6–1.9 Cr | 14.2% vs 23.3% | exact |
+| Assignment-like returns at scale (120 suppliers, 30k orders) | 6/6 | 15.1% vs 24.2% | exact |
+| Indian spreadsheet exports (DD/MM/YYYY, 12,34,567.89, BOM, extra columns) | 3/3, identical to clean files | 15.7% vs 28.9% | exact |
 
-The first run of this harness found three weaknesses the assignment data could not reveal — relative scaling that condemned someone even on a clean panel, a biased price test, and an attribution model that could underperform a simple exposure rule on sparse labels. All three were fixed and are now covered by tests.
+The harness found weaknesses the assignment data could not reveal — relative scaling that condemned someone even on a clean panel, a biased price test, an attribution model that could underperform a simple exposure rule on sparse labels, and a loader that misread Indian-format amounts and could misread DD/MM dates. All were fixed and are covered by tests.
 
 ## Integration
 

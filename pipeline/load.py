@@ -12,6 +12,7 @@ to check whether our independent ranking found the same suppliers.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -50,6 +51,29 @@ NUM_COLS: dict[str, list[str]] = {
     "payment_records": ["agreed_payment_days", "days_late"],
     "supplier_master": ["years_of_relationship", "credit_days_agreed"],
 }
+
+# Every column the pipeline reads. Anything else in an export (remarks,
+# serial numbers, blank columns) is set aside at load, so an extra column
+# can never collide with another file's in a join.
+KNOWN_COLS: dict[str, set[str]] = {
+    "purchase_orders": {"po_id", "po_date", "supplier_id", "material_id", "quantity_ordered", "unit",
+                        "unit_price_quoted", "delivery_promised_date", "payment_terms_days"},
+    "goods_receipts": {"gr_id", "po_id", "receipt_date", "quantity_received", "quality_grade",
+                       "rejection_qty", "rejection_reason", "invoice_amount_billed"},
+    "customer_returns": {"return_id", "return_date", "client_id", "material_id", "quantity_returned",
+                         "reason", "supplier_id_traced"},
+    "market_price_index": {"month", "material_category", "market_price_per_mt", "source"},
+    "payment_records": {"po_id", "supplier_id", "invoice_date", "agreed_payment_days",
+                        "actual_payment_date", "days_late"},
+    "supplier_master": {"supplier_id", "supplier_name", "material_categories", "city",
+                        "years_of_relationship", "contact_name", "credit_days_agreed",
+                        config.LABEL_COLUMN},
+}
+
+ISO_DATE = re.compile(r"^\d{4}-\d{1,2}(-\d{1,2})?")
+NUMERIC_DATE = re.compile(r"^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})")
+# Currency symbols, digit grouping and spaces, as exported by Excel or Tally.
+NUMBER_NOISE = re.compile(r"(?i)(₹|rs\.?|inr|,|\s)")
 
 KEY_COLS: dict[str, str] = {
     "purchase_orders": "po_id",
@@ -105,7 +129,11 @@ def _discover(raw_dir: Path, q: Quality) -> dict[str, pd.DataFrame]:
 
     found: dict[str, pd.DataFrame] = {}
     for path in paths:
-        df = pd.read_csv(path)
+        # utf-8-sig drops the byte-order mark Excel writes, which would
+        # otherwise corrupt the first column's name. Everything is read as
+        # text and typed deliberately in _coerce.
+        df = pd.read_csv(path, encoding="utf-8-sig", dtype=str)
+        df.columns = [str(c).strip() for c in df.columns]
         name = identify(df)
         if name is None:
             q.warn(STAGE, "Unrecognised file",
@@ -116,6 +144,12 @@ def _discover(raw_dir: Path, q: Quality) -> dict[str, pd.DataFrame]:
             q.warn(STAGE, "Duplicate file",
                    f"{path.name} also matches {name}; keeping the first.")
             continue
+        extra = [c for c in df.columns if c not in KNOWN_COLS[name]]
+        if extra:
+            q.info(STAGE, "Extra columns ignored",
+                   f"{path.name} ({name}): {', '.join(extra[:6])} not used by the analysis.",
+                   action="set aside")
+            df = df.drop(columns=extra)
         found[name] = df
         q.count(f"rows.{name}", len(df))
 
@@ -128,35 +162,81 @@ def _discover(raw_dir: Path, q: Quality) -> dict[str, pd.DataFrame]:
     return found
 
 
-def _coerce(name: str, df: pd.DataFrame, q: Quality) -> pd.DataFrame:
-    """Dates become datetimes, numbers become numbers, loudly."""
-    df = df.copy()
+def _day_first(frames: dict[str, pd.DataFrame], q: Quality) -> bool:
+    """Decide once, for the whole dataset, whether 02/04/2023 is 2 April or 4 February.
 
-    for col in DATE_COLS.get(name, []):
-        if col not in df.columns:
-            continue
-        before = df[col].notna().sum()
-        df[col] = pd.to_datetime(df[col], errors="coerce", format="mixed")
-        lost = before - df[col].notna().sum()
-        if lost:
-            q.warn(STAGE, "Unparseable dates",
-                   f"{name}.{col}: {lost} values could not be parsed.",
-                   rows_affected=int(lost), action="set to NaT")
+    A value like 25/03/2023 can only be day-first and 03/25/2023 only
+    month-first; one such value settles every file. With no deciding value
+    the Indian convention (day first) is assumed, and said so -- a silent
+    guess here would shift every date in the analysis.
+    """
+    firsts, seconds = [], []
+    for name, df in frames.items():
+        for col in DATE_COLS.get(name, []):
+            if col not in df.columns:
+                continue
+            m = df[col].dropna().astype(str).str.strip().str.extract(NUMERIC_DATE).dropna()
+            firsts.append(m[0].astype(int))
+            seconds.append(m[1].astype(int))
+    first = pd.concat(firsts) if firsts else pd.Series(dtype=int)
+    second = pd.concat(seconds) if seconds else pd.Series(dtype=int)
+    if first.empty:
+        return False                             # ISO dates throughout
+    if (first > 12).any() and (second > 12).any():
+        raise PipelineError("Dates mix day-first and month-first formats (e.g. 25/03 and 03/25); "
+                            "export them in one consistent format.")
+    if (first > 12).any():
+        q.info(STAGE, "Date format", "Dates are day-first (DD/MM/YYYY).")
+        return True
+    if (second > 12).any():
+        q.info(STAGE, "Date format", "Dates are month-first (MM/DD/YYYY).")
+        return False
+    q.warn(STAGE, "Ambiguous date format",
+           "No date settles whether values like 02/04/2023 are day-first or month-first; "
+           "day-first (the Indian convention) was assumed.", action="assumed DD/MM/YYYY")
+    return True
 
-    for col in NUM_COLS.get(name, []):
-        if col not in df.columns:
-            continue
-        before = df[col].notna().sum()
-        df[col] = pd.to_numeric(df[col], errors="coerce")
-        lost = before - df[col].notna().sum()
-        if lost:
-            q.warn(STAGE, "Non-numeric values",
-                   f"{name}.{col}: {lost} values could not be parsed.",
-                   rows_affected=int(lost), action="set to NaN")
 
-    for col in df.select_dtypes(include="object").columns:
-        df[col] = df[col].str.strip()
+def _parse_dates(s: pd.Series, day_first: bool) -> pd.Series:
+    text = s.astype("string").str.strip()
+    iso = text.str.match(ISO_DATE).fillna(False).astype(bool)
+    out = pd.to_datetime(text.where(iso), errors="coerce", format="mixed")
+    other = text.where(~iso)
+    if other.notna().any():
+        out = out.fillna(pd.to_datetime(other, errors="coerce", format="mixed", dayfirst=day_first))
+    return out
 
+
+def _parse_numbers(s: pd.Series) -> pd.Series:
+    """'23,26,836.99', '₹ 1,200' and ' 42 ' all become numbers."""
+    text = s.astype("string").str.replace(NUMBER_NOISE, "", regex=True)
+    return pd.to_numeric(text.replace("", pd.NA), errors="coerce")
+
+
+def _coerce(name: str, df: pd.DataFrame, day_first: bool, q: Quality) -> pd.DataFrame:
+    """Text is trimmed, dates become datetimes, numbers become numbers -- loudly."""
+    df = df.apply(lambda c: c.str.strip().replace("", pd.NA) if c.dtype == object else c)
+
+    parsers = (("dates", DATE_COLS.get(name, []), lambda c: _parse_dates(c, day_first)),
+               ("numbers", NUM_COLS.get(name, []), _parse_numbers))
+    for kind, cols, parse in parsers:
+        for col in cols:
+            if col not in df.columns:
+                continue
+            raw = df[col]
+            before = int(raw.notna().sum())
+            df[col] = parse(raw)
+            lost = before - int(df[col].notna().sum())
+            if not lost:
+                continue
+            examples = ", ".join(repr(v) for v in raw[df[col].isna() & raw.notna()].unique()[:3])
+            if before and lost / before > config.MAX_UNPARSEABLE_SHARE:
+                raise PipelineError(
+                    f"{name}.{col}: {lost} of {before} values are not valid {kind} (e.g. {examples}). "
+                    f"Fix the export and upload again.")
+            q.warn(STAGE, f"Unparseable {kind}",
+                   f"{name}.{col}: {lost} values could not be parsed (e.g. {examples}).",
+                   rows_affected=lost, action="left blank")
     return df
 
 
@@ -248,7 +328,8 @@ def load_all(raw_dir: Path | None = None, q: Quality | None = None) -> Dataset:
     raw_dir = raw_dir or config.RAW
 
     frames = _discover(raw_dir, q)
-    frames = {n: _coerce(n, df, q) for n, df in frames.items()}
+    day_first = _day_first(frames, q)
+    frames = {n: _coerce(n, df, day_first, q) for n, df in frames.items()}
     frames = {n: _dedupe(n, df, q) for n, df in frames.items()}
 
     _check_units(frames["purchase_orders"], q)

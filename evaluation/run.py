@@ -62,6 +62,32 @@ SCENARIOS = [
         purpose="Every supplier drawn from the same distribution. Any supplier flagged 'act now' "
                 "here is a false alarm.",
         n_suppliers=30, n_orders=5_000, seed=44, bad={}),
+    Scenario(
+        name="E_recent_deterioration", title="Suppliers that went bad recently",
+        purpose="Two suppliers behave normally for two years, then deteriorate sharply in the final "
+                "year; two others are steadily poor throughout. A three-year average dilutes a recent "
+                "collapse -- does the scorecard still catch it, and does the year view show it?",
+        n_suppliers=35, n_orders=7_000, seed=55,
+        bad={"S006": Profile(short=0.05, late=6.0, reject=0.04, defect=5.0, bad_from="2024-01-01"),
+             "S019": Profile(short=0.05, late=6.0, reject=0.04, defect=5.0, bad_from="2024-01-01"),
+             "S027": Profile(short=0.025, late=4.0, reject=0.015, defect=3.0),
+             "S033": Profile(short=0.025, late=4.0, reject=0.015, defect=3.0)}),
+    Scenario(
+        name="F_assignment_mechanism_at_scale", title="Assignment-like returns, at scale",
+        purpose="Returns follow the pattern found in the assignment data -- the supplier is drawn by its "
+                "defect propensity, but the returned material and date are unrelated to any batch -- on "
+                "a panel of 120 suppliers and 30,000 orders. Scores attribution on hidden returns under "
+                "the real mechanism, and tests scale.",
+        n_suppliers=120, n_orders=30_000, returns="propensity", seed=66,
+        bad={s: Profile(short=0.03, late=5.0, reject=0.02, defect=6.0)
+             for s in ["S011", "S034", "S058", "S077", "S090", "S112"]}),
+    Scenario(
+        name="G_spreadsheet_export", title="Spreadsheet exports (Indian formats)",
+        purpose="The files as Excel/Tally would export them in India: DD/MM/YYYY dates, amounts like "
+                "23,26,836.99, a UTF-8 byte-order mark, an extra column, reversed column order and stray "
+                "spaces in IDs. Must give the same answer as clean files.",
+        n_suppliers=30, n_orders=5_000, export="indian", seed=77,
+        bad={s: Profile(short=0.035, late=5.0, reject=0.025, defect=4.0) for s in ["S005", "S014", "S026"]}),
 ]
 
 
@@ -176,6 +202,17 @@ def evaluate(sc: Scenario) -> dict:
                              "overall_rank": int(s.loc[sid, "rank"])}
     out["category"] = cat_hits
 
+    # -- suppliers that deteriorated recently: loss by year, and where they rank
+    years = money.year_totals(orders, alloc)
+    years["loss"] = years["short_loss"] + years["reject_loss"] + years["return_loss"]
+    out["drift"] = {}
+    for sid, p in truth["bad"].items():
+        if p.get("bad_from"):
+            by_year = years[years["supplier_id"] == sid].set_index("year")["loss"]
+            out["drift"][sid] = {"bad_from": p["bad_from"], "rank": int(s.loc[sid, "rank"]),
+                                 "band": s.loc[sid, "band"],
+                                 "loss_by_year": {int(y): float(v) for y, v in by_year.items()}}
+
     # -- shrinkage: unlucky tiny suppliers must not be condemned
     out["unlucky"] = {sid: {"orders": int(s.loc[sid, "orders"]), "rank": int(s.loc[sid, "rank"]),
                             "band": s.loc[sid, "band"], "in_bottom_k": sid in bottom[:max(k, 3)]}
@@ -260,6 +297,10 @@ def report(results: list[dict]) -> str:
             L.append(f"- **{sid}** bad on {v['material']} only → flags on {v['material']}: "
                      f"{', '.join(v['flags_on_that_material']) or 'none'}; other materials flagged: "
                      f"{v['other_materials_flagged']}; overall rank {v['overall_rank']}")
+        for sid, v in r.get("drift", {}).items():
+            yrs = ", ".join(f"{y}: ₹{v2 / 1e5:,.1f} L" for y, v2 in v["loss_by_year"].items())
+            L.append(f"- **{sid}** normal until {v['bad_from']}, then bad → rank {v['rank']}, band '{v['band']}'. "
+                     f"Loss by year: {yrs}")
         for sid, v in r["unlucky"].items():
             L.append(f"- **{sid}** ({v['orders']} orders, unlucky) → rank {v['rank']}, band '{v['band']}', "
                      f"{'in' if v['in_bottom_k'] else 'not in'} the bottom group")
