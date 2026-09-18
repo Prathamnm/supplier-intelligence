@@ -14,8 +14,8 @@ jobs:
         with:
           python-version: "3.13"
           cache: pip
-      - run: pip install -r requirements.txt
-      - run: ruff check pipeline tests
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check pipeline api evaluation tests
       # Includes the web contract tests: the committed JSON the site is built
       # from must match a fresh run and satisfy web/src/lib/types.ts.
       - run: python -m pytest

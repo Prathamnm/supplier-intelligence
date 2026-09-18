@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { briefById, byId, DIMENSION_LABEL, summary, suppliers } from '../lib/data'
-import { details, returns } from '../lib/detail'
+import { useDataset, useDetail } from '../lib/dataset'
 import { date, inr, inrShort, num, pct } from '../lib/format'
 import type { DimensionKey, Supplier } from '../lib/types'
 import { BandBadge, Card, Meter, Pill, scoreText, Section, Stat, toneFor } from '../components/ui'
@@ -21,10 +20,13 @@ const median = (xs: number[]) => {
 
 export default function SupplierPage() {
   const { id = '' } = useParams()
+  const { summary, suppliers, byId, briefById, dimensionLabel: DIMENSION_LABEL, briefUrl } = useDataset()
+  const detail = useDetail()
+  const returns = detail?.returns
   const s = byId.get(id)
   const brief = briefById.get(id)
   const replacement = summary.replacements.find((r) => r.supplier_id === id)
-  const myReturns = useMemo(() => returns.filter((r) => r.supplier_attributed === id), [id])
+  const myReturns = useMemo(() => (returns ?? []).filter((r) => r.supplier_attributed === id), [returns, id])
 
   if (!s) {
     return (
@@ -36,7 +38,7 @@ export default function SupplierPage() {
   }
 
   const panelMedian = (k: DimensionKey) => median(suppliers.map(DIM_VALUE[k].get))
-  const { categories, years } = details[id] ?? { categories: [], years: [] }
+  const { categories, years } = detail?.details[id] ?? { categories: [], years: [] }
   const maxYear = Math.max(...years.map((y) => y.short_loss + y.return_loss + y.reject_loss), 1)
 
   return (
@@ -58,13 +60,13 @@ export default function SupplierPage() {
           {brief && (
             <div className="flex gap-2">
               {brief.files.pdf && (
-                <a href={`./briefs/${brief.files.pdf}`} target="_blank" rel="noreferrer"
+                <a href={briefUrl(brief.files.pdf)} target="_blank" rel="noreferrer"
                    className="rounded-lg bg-ink px-3.5 py-2 text-sm font-medium text-bg hover:bg-ink-2">
                   Negotiation brief · PDF
                 </a>
               )}
               {brief.files.html && (
-                <a href={`./briefs/${brief.files.html}`} target="_blank" rel="noreferrer"
+                <a href={briefUrl(brief.files.html)} target="_blank" rel="noreferrer"
                    className="rounded-lg border border-line px-3.5 py-2 text-sm text-ink-2 hover:text-ink">
                   Print view
                 </a>

@@ -1,14 +1,24 @@
 import { Link } from 'react-router-dom'
-import { summary, suppliers, byId, briefById, DIMENSION_LABEL } from '../lib/data'
+import { useDataset } from '../lib/dataset'
 import { frac, inr, inrShort, int, num, pct } from '../lib/format'
 import { Card, CountUp, Pill, Section, Stat } from '../components/ui'
 import { PanelStrip } from '../components/PanelStrip'
 import { ImpactBars, Legend } from '../components/ImpactBars'
 import { LeagueTable } from '../components/LeagueTable'
 
+const NUMBER_WORD: Record<number, string> = { 1: 'One', 2: 'Two', 3: 'Three', 4: 'Four', 5: 'Five' }
+
+const yearsText = (y: number) => {
+  const r = Math.round(y)
+  return Math.abs(y - r) < 0.15 ? `${['zero', 'one', 'two', 'three', 'four', 'five'][r] ?? r} year${r === 1 ? '' : 's'}` : `${y.toFixed(1)} years`
+}
+
 export default function Overview() {
+  const { summary, suppliers, byId, briefById, dimensionLabel: DIMENSION_LABEL, briefUrl, source } = useDataset()
   const { bottom, totals, counts, validation, attribution, stability } = summary
   const bottomNames = bottom.suppliers.map((id) => byId.get(id)?.supplier_name ?? id)
+  // The problem statement's own figures only apply to the assignment data.
+  const isAssignment = source === 'bundled'
 
   return (
     <div className="space-y-14">
@@ -18,9 +28,9 @@ export default function Overview() {
           {counts.suppliers} suppliers · {summary.period.years.toFixed(0)} years · {int(counts.orders)} purchase orders
         </div>
         <h1 className="mt-3 max-w-4xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
-          Three suppliers cost Arora Traders{' '}
+          {NUMBER_WORD[bottom.suppliers.length] ?? bottom.suppliers.length} suppliers cost {isAssignment ? 'Arora Traders' : 'you'}{' '}
           <span className="text-crit"><CountUp value={bottom.total_impact} format={(x) => inrShort(x)} /></span>{' '}
-          over three years.
+          over {yearsText(summary.period.years)}.
         </h1>
         <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink-2">
           {bottomNames.join(', ')} handle {frac(bottom.share_of_spend)} of spend but account for{' '}
@@ -74,7 +84,7 @@ export default function Overview() {
           </div>
         </Card>
 
-        <div className="mt-3 grid gap-3 md:grid-cols-3">
+        <div className={`mt-3 grid gap-3 ${isAssignment ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
           <Card className="p-4">
             <div className="text-xs uppercase tracking-[.1em] text-ink-3">Beyond the normal panel rate</div>
             <div className="num mt-1 text-xl font-semibold">{inrShort(bottom.excess_per_year)} <span className="text-sm font-normal text-ink-3">/ year</span></div>
@@ -83,14 +93,16 @@ export default function Overview() {
               {' '}{pct(bottom.excess_rate_of_spend * 100, 2)} of their spend.
             </p>
           </Card>
-          <Card className="p-4">
-            <div className="text-xs uppercase tracking-[.1em] text-ink-3">Against the problem statement’s estimate</div>
-            <div className="num mt-1 text-xl font-semibold">{inrShort(bottom.scaled_to_ps_low)} – {inrShort(bottom.scaled_to_ps_high)} <span className="text-sm font-normal text-ink-3">/ year</span></div>
-            <p className="mt-1 text-xs leading-relaxed text-ink-2">
-              That leakage rate applied to the stated ₹70–85L monthly procurement. The brief estimated
-              {' '}{inrShort(bottom.ps_estimate_low, 0)}–{inrShort(bottom.ps_estimate_high, 0)}; the data transacts {inrShort(counts.monthly_spend)} a month, hence the larger absolute figures.
-            </p>
-          </Card>
+          {isAssignment && (
+            <Card className="p-4">
+              <div className="text-xs uppercase tracking-[.1em] text-ink-3">Against the problem statement’s estimate</div>
+              <div className="num mt-1 text-xl font-semibold">{inrShort(bottom.scaled_to_ps_low)} – {inrShort(bottom.scaled_to_ps_high)} <span className="text-sm font-normal text-ink-3">/ year</span></div>
+              <p className="mt-1 text-xs leading-relaxed text-ink-2">
+                That leakage rate applied to the stated ₹70–85L monthly procurement. The brief estimated
+                {' '}{inrShort(bottom.ps_estimate_low, 0)}–{inrShort(bottom.ps_estimate_high, 0)}; the data transacts {inrShort(counts.monthly_spend)} a month, hence the larger absolute figures.
+              </p>
+            </Card>
+          )}
           <Card className="p-4">
             <div className="text-xs uppercase tracking-[.1em] text-ink-3">Price premium</div>
             <div className="num mt-1 text-xl font-semibold">{summary.premium.significant.length ? inrShort(totals.premium_loss) : '₹0 claimed'}</div>
@@ -106,10 +118,12 @@ export default function Overview() {
       {/* ------------------------------------------------ recommendation */}
       <Section
         eyebrow="D5 · Recommendation"
-        title="Replace these three — the panel already has better sources"
+        title={`Replace these ${NUMBER_WORD[summary.replacements.length]?.toLowerCase() ?? summary.replacements.length} — the panel already has better sources`}
         lede={<>
           For each material they supply, the best-scoring alternatives already on the panel for that same material.
-          The bottom three are unchanged under all {Object.keys(stability.scenarios).length} weightings tested{stability.stable ? '' : ' (not stable — see Method)'}.
+          {stability.stable
+            ? `The bottom ${stability.k} are unchanged under all ${Object.keys(stability.scenarios).length} weightings tested.`
+            : `Which suppliers make the bottom ${stability.k} changes under some of the ${Object.keys(stability.scenarios).length} weightings tested — see Method.`}
         </>}
       >
         <div className="grid gap-3 lg:grid-cols-3">
@@ -158,7 +172,7 @@ export default function Overview() {
                   )}
                 </div>
                 {b?.files.pdf && (
-                  <a href={`./briefs/${b.files.pdf}`} target="_blank" rel="noreferrer" className="mt-auto pt-4 text-sm font-medium text-accent hover:underline">
+                  <a href={briefUrl(b.files.pdf)} target="_blank" rel="noreferrer" className="mt-auto pt-4 text-sm font-medium text-accent hover:underline">
                     Open negotiation brief (PDF) →
                   </a>
                 )}

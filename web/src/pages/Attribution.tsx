@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { byId, summary } from '../lib/data'
-import { returns } from '../lib/detail'
+import { useDataset, useDetail } from '../lib/dataset'
 import { date, frac, inrShort, num } from '../lib/format'
 import { Card, Pill, Section, Stat } from '../components/ui'
 
@@ -14,6 +13,8 @@ const METRICS: { key: Metric; label: string; better: 'low' | 'high'; note: strin
 ]
 
 export default function Attribution() {
+  const { summary, byId } = useDataset()
+  const returns = useDetail()?.returns
   const a = summary.attribution
   const { counts } = summary
   const [metric, setMetric] = useState<Metric>('misallocation')
@@ -31,10 +32,10 @@ export default function Attribution() {
 
   const inferred = useMemo(() => {
     const f = filter.trim().toLowerCase()
-    return returns
+    return (returns ?? [])
       .filter((r) => r.source === 'inferred')
       .filter((r) => !f || `${r.return_id} ${r.material_id} ${r.supplier_attributed} ${r.reason}`.toLowerCase().includes(f))
-  }, [filter])
+  }, [returns, filter])
 
   return (
     <div className="space-y-14">

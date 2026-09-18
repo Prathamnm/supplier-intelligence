@@ -1,0 +1,16 @@
+# Render blueprint for the upload API (https://render.com/docs/blueprint-spec).
+# The web app is deployed separately (Netlify/Vercel) with VITE_API_URL set
+# to this service's URL; set SI_CORS_ORIGINS to the web app's URL.
+services:
+  - type: web
+    name: supplier-intelligence-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.1
+      - key: SI_CORS_ORIGINS
+        sync: false

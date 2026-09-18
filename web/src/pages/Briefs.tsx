@@ -1,14 +1,15 @@
 import { Link } from 'react-router-dom'
-import { briefs } from '../lib/data'
+import { useDataset } from '../lib/dataset'
 import { inrShort } from '../lib/format'
 import { Card, Pill, Section } from '../components/ui'
 
 export default function Briefs() {
+  const { briefs, briefUrl } = useDataset()
   return (
     <div className="space-y-10">
       <section className="animate-fade">
         <div className="text-xs font-medium uppercase tracking-[.14em] text-ink-3">D4 · Negotiation briefs</div>
-        <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">Five briefs, two A4 pages each, ready to print.</h1>
+        <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">{briefs.length} negotiation briefs, two A4 pages each, ready to print.</h1>
         <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink-2">
           Page one is what Kiran carries into the room: the rupee figure with its arithmetic, numbered asks with the evidence behind each,
           and what the supplier is likely to say back. Page two lists the purchase orders to put on the table and a per-material breakdown.
@@ -16,7 +17,7 @@ export default function Briefs() {
         </p>
       </section>
 
-      <Section title="Bottom five by scorecard">
+      <Section title={`Bottom ${briefs.length} by scorecard`}>
         <div className="grid gap-3 md:grid-cols-2">
           {briefs.map((b) => (
             <Card key={b.supplier_id} className="flex flex-col p-5">
@@ -42,11 +43,11 @@ export default function Briefs() {
               </ol>
               <div className="mt-auto flex gap-2 pt-5">
                 {b.files.pdf && (
-                  <a href={`./briefs/${b.files.pdf}`} target="_blank" rel="noreferrer"
+                  <a href={briefUrl(b.files.pdf)} target="_blank" rel="noreferrer"
                     className="rounded-lg bg-ink px-3.5 py-2 text-sm font-medium text-bg hover:bg-ink-2">Download PDF</a>
                 )}
                 {b.files.html && (
-                  <a href={`./briefs/${b.files.html}`} target="_blank" rel="noreferrer"
+                  <a href={briefUrl(b.files.html)} target="_blank" rel="noreferrer"
                     className="rounded-lg border border-line px-3.5 py-2 text-sm text-ink-2 hover:text-ink">Print view</a>
                 )}
               </div>

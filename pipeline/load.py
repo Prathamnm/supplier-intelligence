@@ -85,7 +85,7 @@ class Dataset:
         }
 
 
-def _identify(df: pd.DataFrame) -> str | None:
+def identify(df: pd.DataFrame) -> str | None:
     cols = set(df.columns)
     for name, required in SIGNATURES.items():
         if required <= cols:
@@ -106,7 +106,7 @@ def _discover(raw_dir: Path, q: Quality) -> dict[str, pd.DataFrame]:
     found: dict[str, pd.DataFrame] = {}
     for path in paths:
         df = pd.read_csv(path)
-        name = _identify(df)
+        name = identify(df)
         if name is None:
             q.warn(STAGE, "Unrecognised file",
                    f"{path.name} matched no known signature; ignored.",

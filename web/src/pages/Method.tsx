@@ -1,4 +1,4 @@
-import { quality, summary, DIMENSION_LABEL } from '../lib/data'
+import { useDataset } from '../lib/dataset'
 import { inr, num } from '../lib/format'
 import { Card, Pill, Section } from '../components/ui'
 
@@ -24,6 +24,7 @@ const ASSUMPTIONS = [
 ]
 
 export default function Method() {
+  const { quality, summary, dimensionLabel: DIMENSION_LABEL, approachUrl, source } = useDataset()
   const { validation, stability } = summary
   const sev = { info: 'default', warning: 'crit', error: 'crit' } as const
 
@@ -37,9 +38,9 @@ export default function Method() {
           this site in {summary.runtime_s.toFixed(1)} seconds. No supplier ID, material name or threshold tuned to this data appears in the code; a different
           dataset with different suppliers and file names runs unchanged (there is a test for it).
         </p>
-        <a href="./approach.pdf" target="_blank" rel="noreferrer"
+        <a href={approachUrl} target="_blank" rel="noreferrer"
            className="mt-5 inline-block rounded-lg bg-ink px-3.5 py-2 text-sm font-medium text-bg hover:bg-ink-2">
-          Read the approach document (PDF)
+          {source === 'bundled' ? 'Read the approach document (PDF)' : 'Read the approach document for this data'}
         </a>
       </section>
 

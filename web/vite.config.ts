@@ -7,6 +7,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: './',
   plugins: [react(), tailwindcss()],
+  // In development the upload page talks to the local API (uvicorn api.main:app).
+  server: { proxy: { '/api': 'http://localhost:8000' } },
+  preview: { proxy: { '/api': 'http://localhost:8000' } },
   build: {
     target: 'es2022',
     rollupOptions: {

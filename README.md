@@ -1,6 +1,6 @@
 # The Supplier Blindspot
 
-**Supplier intelligence for Arora Traders** — a 34-supplier scorecard, rupee-quantified losses, inference of the supplier behind untraced customer returns, and printable negotiation briefs, built from three years of transaction data.
+**Supplier intelligence for Arora Traders** — a 34-supplier scorecard, rupee-quantified losses, inference of the supplier behind untraced customer returns, and printable negotiation briefs, built from three years of transaction data. Upload your own six CSVs and the same analysis runs on them.
 
 > MCCIA Applied AI Studio · Problem Statement 4
 
@@ -25,10 +25,10 @@
 
 ```bash
 # 1. Analysis: raw CSVs in, every output out (~10 s; PDFs need Edge or Chrome)
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 python -m pipeline.preflight      # optional: data audit, prints every assumption check
 python -m pipeline.run            # scorecard, attribution, JSON, CSVs, briefs, approach PDF
-python -m pytest                  # 27 tests, incl. the pipeline <-> web contract
+python -m pytest                  # 38 tests: pipeline, web contract, upload API
 python -m evaluation.run          # synthetic datasets with a known answer -> evaluation/REPORT.md
 ruff check pipeline tests
 
@@ -39,7 +39,13 @@ npm run dev                       # http://localhost:5173
 npm run check                     # eslint + tsc
 npm run build                     # static site in web/dist
 npm run pipeline                  # re-run the Python analysis from here
+
+# 3. Upload API (for the Upload page) -- run alongside `npm run dev`
+cd ..
+uvicorn api.main:app --port 8000  # interactive docs at http://localhost:8000/docs
 ```
+
+Open **http://localhost:5173/#/upload**, drop in six CSVs (any file names) or pick a generated sample, and every page switches to that analysis. A banner shows which dataset you're viewing, with a shareable link and a button back to the assignment data.
 
 On a new dataset: drop the six CSVs (any file names) into `pipeline/data/raw/` or pass `--raw path/`, then run the same command. Suppliers, materials and thresholds are discovered; the model refits. `--no-pdf` skips browser printing.
 
@@ -64,7 +70,8 @@ CSVs ─► 01 load ─► 02 join ─► 03 attribute ─► 04 rupees ─► 0
 | [`pipeline/score.py`](pipeline/score.py) | Scorecard, per-material view, weight stability, blind validation, D5 alternatives. |
 | [`pipeline/brief.py`](pipeline/brief.py) | Negotiation brief content and PDF rendering. |
 | [`pipeline/report.py`](pipeline/report.py) | The approach document, generated from the same run. |
-| [`web/`](web/) | Vite + React + TypeScript + Tailwind. Static; imports the pipeline's JSON at build time. |
+| [`api/`](api/) | FastAPI upload service: receives CSVs, runs the same `pipeline.run()` in a sandboxed folder per analysis, serves the resulting JSON and briefs. Size limits, validated ids, automatic expiry. |
+| [`web/`](web/) | Vite + React + TypeScript + Tailwind. Bundles the assignment results; the Upload page fetches any other analysis from the API in the same shape. |
 
 ### Key decisions
 
@@ -99,11 +106,15 @@ detail and the returns table load only with the pages that use them.
 
 ## Deploy
 
-The hosted build runs only `npm run build`, so the pipeline's outputs (`web/src/data/`, `web/public/briefs/`, `web/public/approach.pdf`) are committed.
+Two independent pieces. The web app works on its own (assignment results are bundled); the API adds uploads.
+
+**Web app.** The hosted build runs only `npm run build`, so the pipeline's outputs (`web/src/data/`, `web/public/briefs/`, `web/public/approach.pdf`) are committed. Set `VITE_API_URL` to the API's URL to enable uploads.
 
 - **Netlify** — import the repo; [`netlify.toml`](netlify.toml) sets base `web`, publish `dist`.
 - **Vercel** — import the repo, set Root Directory to `web`; [`web/vercel.json`](web/vercel.json) does the rest.
 - **Anywhere else** — `cd web && npm run build` and upload `web/dist/`. Hash routing means no rewrite rules are needed.
+
+**API.** [`render.yaml`](render.yaml) deploys it on Render (free tier; it sleeps when idle, so the first upload after a while takes ~30–50 s to wake it). Set `SI_CORS_ORIGINS` to the web app's URL. Other settings (`SI_MAX_FILE_MB`, `SI_TTL_MINUTES`, `SI_PDF`, …) are in [`api/settings.py`](api/settings.py).
 
 ## Data
 

@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
-import { summary } from '../lib/data'
+import { useDatasetState } from '../lib/dataset'
 import { ErrorBoundary } from './ErrorBoundary'
 import { date } from '../lib/format'
 
@@ -9,10 +9,13 @@ const NAV = [
   { to: '/attribution', label: 'Attribution' },
   { to: '/briefs', label: 'Briefs' },
   { to: '/method', label: 'Method' },
+  { to: '/upload', label: 'Upload' },
 ]
 
 export function Layout() {
   const { pathname } = useLocation()
+  const { dataset, reset, notice } = useDatasetState()
+  const { summary, approachUrl } = dataset
   useEffect(() => window.scrollTo(0, 0), [pathname])
 
   return (
@@ -28,7 +31,7 @@ export function Layout() {
               </svg>
             </span>
             <span className="text-sm font-semibold tracking-tight">Supplier Blindspot</span>
-            <span className="hidden text-xs text-ink-3 sm:inline">Arora Traders</span>
+            {dataset.source === 'bundled' && <span className="hidden text-xs text-ink-3 sm:inline">Arora Traders</span>}
           </NavLink>
           <nav className="-mx-1 flex flex-1 items-center gap-1 overflow-x-auto">
             {NAV.map((n) => (
@@ -44,12 +47,40 @@ export function Layout() {
               </NavLink>
             ))}
           </nav>
-          <a href="./approach.pdf" target="_blank" rel="noreferrer"
+          <a href={approachUrl} target="_blank" rel="noreferrer"
              className="hidden rounded-md border border-line px-2.5 py-1.5 text-xs text-ink-2 hover:text-ink md:inline-block">
             Write-up (PDF)
           </a>
         </div>
       </header>
+      {(dataset.source !== 'bundled' || notice) && (
+        <div className={`border-b ${notice ? 'border-warn/30 bg-warn/10' : 'border-accent/30 bg-accent/10'}`}>
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-sm sm:px-6">
+            {notice ? (
+              <span className="text-warn">{notice}</span>
+            ) : (
+              <>
+                <span className="size-2 rounded-full bg-accent" aria-hidden />
+                <span className="text-ink">
+                  Viewing <b>{dataset.label}</b>
+                </span>
+                <span className="text-ink-3">
+                  {summary.counts.suppliers} suppliers · {summary.counts.orders.toLocaleString('en-IN')} orders · analysed in{' '}
+                  {dataset.meta?.runtime_s?.toFixed(1) ?? '—'}s
+                </span>
+                <button
+                  onClick={() => navigator.clipboard?.writeText(`${window.location.origin}${window.location.pathname}#/?analysis=${dataset.key}`)}
+                  className="ml-auto text-ink-3 hover:text-ink"
+                  title="Copy a link that opens this analysis (while the server keeps it)"
+                >
+                  Copy link
+                </button>
+                <button onClick={reset} className="text-accent hover:underline">Back to assignment data</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       <main className="mx-auto max-w-6xl px-4 pb-24 pt-8 sm:px-6">
         {/* Keyed by route so navigating away clears a failed view. */}
         <ErrorBoundary key={pathname}>
