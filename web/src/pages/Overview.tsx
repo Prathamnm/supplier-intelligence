@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useDataset } from '../lib/dataset'
-import { frac, inr, inrShort, int, num, pct } from '../lib/format'
-import { Card, CountUp, Pill, Section, Stat } from '../components/ui'
+import { frac, inrShort, int, num, pct } from '../lib/format'
+import { Card, CountUp, Explain, Pill, Section, Stat } from '../components/ui'
 import { PanelStrip } from '../components/PanelStrip'
 import { ImpactBars, Legend } from '../components/ImpactBars'
 import { LeagueTable } from '../components/LeagueTable'
@@ -33,9 +33,8 @@ export default function Overview() {
           over {yearsText(summary.period.years)}.
         </h1>
         <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink-2">
-          {bottomNames.join(', ')} handle {frac(bottom.share_of_spend)} of spend but account for{' '}
-          {frac(bottom.share_of_impact)} of every rupee lost to short delivery, customer returns and rejected
-          material. Every figure below traces to a purchase order, a goods receipt or a return note.
+          {bottomNames.join(', ')} get {frac(bottom.share_of_spend)} of the orders but cause{' '}
+          {frac(bottom.share_of_impact)} of the money lost to short deliveries, customer returns and rejected material.
         </p>
         <div className="mt-8">
           <PanelStrip rows={suppliers} />
@@ -45,71 +44,78 @@ export default function Overview() {
       {/* ---------------------------------------------------------- KPIs */}
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat
-          label="Short delivery + returns"
+          label="Lost to short deliveries and returns"
           value={inrShort(totals.rubric_core_total)}
-          sub={<>Across all {counts.suppliers} suppliers, using the problem statement’s formula</>}
+          sub={<>All {counts.suppliers} suppliers, over {yearsText(summary.period.years)}</>}
         />
         <Stat
-          label="Total quantified"
+          label="Total money lost"
           value={inrShort(totals.total_impact)}
-          sub={<>Adds rejected material and return handling</>}
+          sub={<>Also counts rejected material and handling returns</>}
         />
         <Stat
-          label="Untraced returns attributed"
+          label="Returns with no supplier recorded"
           value={`${counts.returns_blank} of ${counts.returns}`}
-          sub={<>{frac(attribution.metrics.misallocation, 1)} of value misallocated under cross-validation</>}
+          sub={<>Traced to their likely supplier; {frac(1 - attribution.metrics.misallocation)} of the value lands on the right one when tested</>}
         />
-        <Stat
-          tone={validation.precision === 1 ? 'good' : 'default'}
-          label="Blind check"
-          value={`${validation.hits.length} / ${validation.flagged.length}`}
-          sub={<>Our bottom {validation.flagged.length} match the dataset’s sealed flag, which the scoring never saw</>}
-        />
+        {validation.available && validation.flagged.length > 0 ? (
+          <Stat
+            tone={validation.precision === 1 ? 'good' : 'default'}
+            label="Double-checked"
+            value={`${validation.hits.length} of ${validation.flagged.length} match`}
+            sub={<>The data’s own list of problem suppliers agrees with ours — and we never looked at it while scoring</>}
+          />
+        ) : (
+          <Stat label="Double-checked" value="n/a" sub={<>This data has no list of known problem suppliers to check against</>} />
+        )}
       </section>
 
       {/* ------------------------------------------------- where it goes */}
       <Section
-        eyebrow="D3 · Financial impact"
+        eyebrow="Money lost"
         title="Where the money goes"
-        lede={<>
-          Short delivery is the problem statement’s formula verbatim: <code className="rounded bg-surface-2 px-1 font-mono text-[12px]">invoice_amount_billed − quantity_received × unit_price_quoted</code>,
-          summed per order. Recorded returns are charged to their supplier; the {counts.returns_blank} untraced returns are split by the attribution model’s probabilities.
-        </>}
+        lede={`The ${Math.min(12, counts.suppliers)} suppliers who cost the most, split by cause. Hover a bar for the amounts; click a name to see that supplier.`}
       >
         <Card className="p-5">
           <div className="mb-4"><Legend /></div>
           <ImpactBars rows={suppliers} limit={12} />
-          <div className="mt-4 border-t border-line pt-3 text-xs text-ink-3">
-            Top 12 of {counts.suppliers} by total quantified impact. Hover a segment for the rupee breakdown; click a name for the supplier’s page.
-          </div>
         </Card>
+        <Explain>
+          <p>
+            <b className="text-ink-2">Short delivery</b> is what a supplier billed minus what actually arrived, at their own price — the
+            assignment’s formula, <code className="font-mono">invoice_amount_billed − quantity_received × unit_price_quoted</code>, added up over every order.
+          </p>
+          <p>
+            <b className="text-ink-2">Returns</b> are charged to the supplier named on the return note. For the {counts.returns_blank} returns
+            with no supplier written down, the value is shared between the likely suppliers according to how probable each one is.
+          </p>
+        </Explain>
 
         <div className={`mt-3 grid gap-3 ${isAssignment ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
           <Card className="p-4">
-            <div className="text-xs uppercase tracking-[.1em] text-ink-3">Beyond the normal panel rate</div>
-            <div className="num mt-1 text-xl font-semibold">{inrShort(bottom.excess_per_year)} <span className="text-sm font-normal text-ink-3">/ year</span></div>
+            <div className="text-xs uppercase tracking-[.1em] text-ink-3">Avoidable loss from the worst {bottom.suppliers.length}</div>
+            <div className="num mt-1 text-xl font-semibold">{inrShort(bottom.excess_per_year)} <span className="text-sm font-normal text-ink-3">a year</span></div>
             <p className="mt-1 text-xs leading-relaxed text-ink-2">
-              What the bottom three leak beyond what the other {counts.suppliers - 3} suppliers leak on the same spend:
-              {' '}{pct(bottom.excess_rate_of_spend * 100, 2)} of their spend.
+              More than an average supplier would lose you on the same orders — {pct(bottom.excess_rate_of_spend * 100, 1)} of what you pay them.
             </p>
           </Card>
           {isAssignment && (
             <Card className="p-4">
-              <div className="text-xs uppercase tracking-[.1em] text-ink-3">Against the problem statement’s estimate</div>
-              <div className="num mt-1 text-xl font-semibold">{inrShort(bottom.scaled_to_ps_low)} – {inrShort(bottom.scaled_to_ps_high)} <span className="text-sm font-normal text-ink-3">/ year</span></div>
+              <div className="text-xs uppercase tracking-[.1em] text-ink-3">Matches the assignment’s estimate</div>
+              <div className="num mt-1 text-xl font-semibold">{inrShort(bottom.scaled_to_ps_low)} – {inrShort(bottom.scaled_to_ps_high)} <span className="text-sm font-normal text-ink-3">a year</span></div>
               <p className="mt-1 text-xs leading-relaxed text-ink-2">
-                That leakage rate applied to the stated ₹70–85L monthly procurement. The brief estimated
-                {' '}{inrShort(bottom.ps_estimate_low, 0)}–{inrShort(bottom.ps_estimate_high, 0)}; the data transacts {inrShort(counts.monthly_spend)} a month, hence the larger absolute figures.
+                At the assignment’s stated ₹70–85 L a month of purchases, the same loss rate gives this — inside its own{' '}
+                {inrShort(bottom.ps_estimate_low, 0)}–{inrShort(bottom.ps_estimate_high, 0)} estimate. (The data itself covers {inrShort(counts.monthly_spend)} a month.)
               </p>
             </Card>
           )}
           <Card className="p-4">
-            <div className="text-xs uppercase tracking-[.1em] text-ink-3">Price premium</div>
+            <div className="text-xs uppercase tracking-[.1em] text-ink-3">Overcharging</div>
             <div className="num mt-1 text-xl font-semibold">{summary.premium.significant.length ? inrShort(totals.premium_loss) : '₹0 claimed'}</div>
             <p className="mt-1 text-xs leading-relaxed text-ink-2">
               {summary.premium.significant.length
-                ? `Established for ${summary.premium.significant.join(', ')}.`
-                : `No supplier’s premium over peers survives a ${frac(summary.premium.fdr)} false-discovery test, so none is charged in rupees. Premiums still enter the scorecard, shrunk by their noise.`}
+                ? `Proven for ${summary.premium.significant.map((id) => byId.get(id)?.supplier_name ?? id).join(', ')}: they consistently charge more than others for the same material.`
+                : 'Some suppliers look a little pricier, but no difference is big enough to rule out chance — so it isn’t counted as money lost.'}
             </p>
           </Card>
         </div>
@@ -117,13 +123,13 @@ export default function Overview() {
 
       {/* ------------------------------------------------ recommendation */}
       <Section
-        eyebrow="D5 · Recommendation"
-        title={`Replace these ${NUMBER_WORD[summary.replacements.length]?.toLowerCase() ?? summary.replacements.length} — the panel already has better sources`}
+        eyebrow="Recommendation"
+        title={`Replace these ${NUMBER_WORD[summary.replacements.length]?.toLowerCase() ?? summary.replacements.length} — better suppliers are already on your panel`}
         lede={<>
-          For each material they supply, the best-scoring alternatives already on the panel for that same material.
+          For each material they supply, the suppliers you already buy from who do it better.{' '}
           {stability.stable
-            ? `The bottom ${stability.k} are unchanged under all ${Object.keys(stability.scenarios).length} weightings tested.`
-            : `Which suppliers make the bottom ${stability.k} changes under some of the ${Object.keys(stability.scenarios).length} weightings tested — see Method.`}
+            ? 'The result holds however the four checks are weighted.'
+            : 'Which suppliers land at the very bottom depends partly on how the checks are weighted — see Method.'}
         </>}
       >
         <div className="grid gap-3 lg:grid-cols-3">
@@ -134,35 +140,37 @@ export default function Overview() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <Link to={`/supplier/${r.supplier_id}`} className="text-base font-semibold hover:text-accent">{r.supplier_name}</Link>
-                    <div className="num text-xs text-ink-3">{r.supplier_id} · rank {r.rank} of {counts.suppliers} · score {r.score.toFixed(0)}</div>
+                    <div className="num text-xs text-ink-3">Score {r.score.toFixed(0)}/100 · {r.rank === counts.suppliers ? 'the lowest' : `${counts.suppliers - r.rank + 1} from the bottom`} of {counts.suppliers}</div>
                   </div>
                   <Pill tone="crit">Replace</Pill>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <div>
-                    <div className="text-[11px] uppercase tracking-[.1em] text-ink-3">Cost to us</div>
+                    <div className="text-[11px] uppercase tracking-[.1em] text-ink-3">Money lost</div>
                     <div className="num text-lg font-semibold">{inrShort(r.total_impact)}</div>
                   </div>
                   <div>
-                    <div className="text-[11px] uppercase tracking-[.1em] text-ink-3">Avoidable by switching</div>
+                    <div className="text-[11px] uppercase tracking-[.1em] text-ink-3">Saved by switching</div>
                     <div className="num text-lg font-semibold text-good">{inrShort(r.avoidable_total)}</div>
                   </div>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-1">
-                  {r.drivers.map((d) => <Pill key={d}>{DIMENSION_LABEL[d]}</Pill>)}
+                <div className="mt-3 flex flex-wrap items-center gap-1 text-xs text-ink-3">
+                  Weak on {r.drivers.map((d) => <Pill key={d}>{DIMENSION_LABEL[d]}</Pill>)}
                 </div>
                 <div className="mt-4 space-y-2 border-t border-line pt-3">
                   {r.materials.slice(0, 4).map((m) => (
                     <div key={m.material} className="text-sm">
                       <div className="flex justify-between gap-2">
                         <span className="text-ink">{m.material}</span>
-                        <span className="num text-xs text-ink-3">{inrShort(m.spend)} spend</span>
+                        <span className="num text-xs text-ink-3">{inrShort(m.spend)} paid</span>
                       </div>
                       <div className="text-xs text-ink-2">
-                        → {m.alternatives.map((a) => (
-                          <Link key={a.supplier_id} to={`/supplier/${a.supplier_id}`} className="mr-2 hover:text-accent">
-                            {a.supplier_name} <span className="text-ink-3">({a.score.toFixed(0)})</span>
-                          </Link>
+                        Switch to{' '}
+                        {m.alternatives.map((a, i) => (
+                          <span key={a.supplier_id}>
+                            {i > 0 && ' or '}
+                            <Link to={`/supplier/${a.supplier_id}`} className="text-ink hover:text-accent">{a.supplier_name}</Link>
+                          </span>
                         ))}
                       </div>
                     </div>
@@ -184,17 +192,21 @@ export default function Overview() {
 
       {/* ---------------------------------------------------- scorecard */}
       <Section
-        eyebrow="D2 · Scorecard"
-        title={`All ${counts.suppliers} suppliers`}
-        lede={<>
-          Four dimensions, weighted {Object.entries(summary.weights).map(([k, w]) => `${DIMENSION_LABEL[k].toLowerCase()} ${num(w * 100)}%`).join(', ')}.
-          Rates are shrunk toward the panel average in proportion to how little evidence a supplier has. Relationship length is not used. Click any row.
-        </>}
+        eyebrow="All suppliers"
+        title="How every supplier scores"
+        lede="A score out of 100 from four checks — full quantity, on time, quality and price. Click a supplier to see why they scored as they did."
       >
         <LeagueTable rows={suppliers} />
-        <p className="mt-3 text-xs text-ink-3">
-          Total quantified across the panel: {inr(totals.total_impact)}.
-        </p>
+        <Explain>
+          <p>
+            The four checks are weighted {Object.entries(summary.weights).map(([k, w]) => `${DIMENSION_LABEL[k].toLowerCase()} ${num(w * 100)}%`).join(', ')}.
+            Changing the weights doesn’t change who ends up at the bottom{stability.stable ? '' : ' much'} (see Method).
+          </p>
+          <p>
+            Suppliers with only a few orders are pulled towards the average until they have enough history, so a couple of bad orders
+            can’t condemn them. How long a supplier has worked with you is deliberately not part of the score — only how they perform.
+          </p>
+        </Explain>
       </Section>
     </div>
   )

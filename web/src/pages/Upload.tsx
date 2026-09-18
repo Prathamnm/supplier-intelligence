@@ -144,11 +144,11 @@ export default function Upload() {
   return (
     <div className="space-y-12">
       <section className="animate-fade">
-        <div className="text-xs font-medium uppercase tracking-[.14em] text-ink-3">Analyse your own data</div>
-        <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">Upload six CSVs. Get the scorecard, the rupees and the briefs.</h1>
+        <div className="text-xs font-medium uppercase tracking-[.14em] text-ink-3">Check your own suppliers</div>
+        <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">Upload your six files. Get the same analysis for your suppliers.</h1>
         <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink-2">
-          The same pipeline that produced the assignment results runs on your files: validation, return attribution, rupee
-          impact, scoring and negotiation briefs. Files are recognised by their columns, so their names don’t matter.
+          Scores, money lost, traced returns and negotiation briefs — worked out from your purchase orders, deliveries, payments and
+          returns. File names don’t matter; each file is recognised by its columns. Excel and Tally exports work as they are.
         </p>
       </section>
 
@@ -310,8 +310,8 @@ export default function Upload() {
       </Section>
 
       {samples.length > 0 && (
-        <Section eyebrow="No files to hand?" title="Try a generated sample dataset"
-          lede="Synthetic datasets in the same format, from the project’s evaluation suite. Each plants known problems for the analysis to find.">
+        <Section eyebrow="No files to hand?" title="Try a sample"
+          lede="Made-up data in the same format, each with some problem suppliers hidden in it. See whether the analysis finds them.">
           <div className="grid gap-3 md:grid-cols-2">
             {samples.map((s) => (
               <Card key={s.name} className="flex flex-col p-4">

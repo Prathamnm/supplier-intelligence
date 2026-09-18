@@ -1,54 +1,59 @@
 import { useDataset } from '../lib/dataset'
 import { inr, num } from '../lib/format'
-import { Card, Pill, Section } from '../components/ui'
+import { Card, Explain, Pill, Section } from '../components/ui'
 
+// [timing key, step, title, what it does]
 const STAGES = [
-  ['01 load', '01', 'Load & validate', 'Identify each CSV by its columns, coerce types, stop on mixed units or missing files. The answer-key column is removed here and sealed.'],
-  ['02 prepare', '02', 'Map & join', 'One row per purchase order carrying its receipt, payment and supplier. Every join asserts its row count.'],
-  ['03 attribute', '03', 'Attribute returns', 'Score every supplier as the possible source of each untraced return; validate on the traced ones.'],
-  ['04 money', '04', 'Convert to rupees', 'The problem statement’s formula per order, return value by probability, peer-benchmarked price premium with a significance test.'],
-  ['05 score', '05', 'Score', 'Four rates, shrunk toward the panel by evidence, scored by distance from the typical supplier, weighted.'],
-  ['06 validate', '06', 'Validate', 'Re-rank under alternative weightings, then open the sealed answer key once.'],
-  ['07 briefs', '07', 'Briefs', 'Compose the asks, render A4 HTML, print to PDF.'],
-  ['08 export', '08', 'Export', 'JSON for this site, CSV for spreadsheets.'],
+  ['01 load', '01', 'Read the files', 'Each file is recognised by its columns. Dates and amounts are checked, and the run stops if something is badly wrong.'],
+  ['02 prepare', '02', 'Link the records', 'Every purchase order is matched to its delivery and its payment.'],
+  ['03 attribute', '03', 'Trace returns', 'Work out the likely supplier behind returns with none recorded.'],
+  ['04 money', '04', 'Count the money', 'Money lost on every order: short deliveries, returns and rejections.'],
+  ['05 score', '05', 'Score', 'Compare every supplier with a typical one on the four checks.'],
+  ['06 validate', '06', 'Double-check', 'Re-rank with different weightings, then compare with the data’s own list of problem suppliers.'],
+  ['07 briefs', '07', 'Write the briefs', 'A two-page negotiation brief for each of the worst suppliers.'],
+  ['08 export', '08', 'Publish', 'Save the results for this site and as spreadsheets.'],
 ]
 
-const ASSUMPTIONS = [
-  ['Return value', 'Quantity returned × the supplier’s own median price for that material. Handling cost (15%) is shown separately and is not part of the headline.'],
-  ['Late delivery', 'Scored on average days late. Almost every supplier is late by a day or two on most orders, so the share of late orders barely separates them; both are reported.'],
-  ['Quality', 'Material rejected at our inspection plus customer returns attributed to the supplier, as a share of quantity received.'],
-  ['Price benchmark', 'Median price other suppliers quoted for the same material in the same quarter. The published index covers 6 of 18 materials and sits well below what the whole panel pays, so it is context only.'],
-  ['Payment lateness', 'Recomputed from invoice date + agreed days; the supplied days_late column does not reconcile with the dates. Used only to warn Kiran of the supplier’s likely counter-argument.'],
-  ['Time', 'All grouping uses po_date. The year inside po_id disagrees with po_date on most rows and is treated as a label.'],
-  ['Relationship length', 'Not read by any scoring code. A test shuffles it and asserts every score is unchanged.'],
+const CHOICES = [
+  ['Value of a return', 'The supplier’s usual price for that material. The cost of handling returns (estimated at 15%) is shown separately and kept out of the headline figure.'],
+  ['Late delivery', 'Judged on how many days late, on average. Nearly every supplier is a day or two late on most orders, so “how often late” barely tells them apart.'],
+  ['Quality', 'Material we rejected at the gate plus material customers sent back, as a share of what the supplier delivered.'],
+  ['Price', 'Compared with what other suppliers charged for the same material in the same quarter. Only counted as money lost if the difference is too big to be chance.'],
+  ['Our own late payments', 'Worked out from invoice dates and agreed terms. Not scored — shown in each brief because the supplier will probably raise it.'],
+  ['Relationship length', 'Deliberately not used: the assignment says scores must be about performance only. A test checks that changing it changes nothing.'],
 ]
+
+const WEIGHTING_NAME: Record<string, string> = {
+  base: 'Our weighting', equal: 'All equal', money_heavy: 'Money first', service_heavy: 'Delivery first', price_heavy: 'Price first',
+}
 
 export default function Method() {
-  const { quality, summary, dimensionLabel: DIMENSION_LABEL, approachUrl, source } = useDataset()
+  const { quality, summary, byId, dimensionLabel, approachUrl, source } = useDataset()
   const { validation, stability } = summary
-  const sev = { info: 'default', warning: 'crit', error: 'crit' } as const
+  const name = (id: string) => byId.get(id)?.supplier_name ?? id
+  const warnings = quality.findings.filter((f) => f.severity !== 'info')
+  const routine = quality.findings.filter((f) => f.severity === 'info')
 
   return (
     <div className="space-y-14">
       <section className="animate-fade">
-        <div className="text-xs font-medium uppercase tracking-[.14em] text-ink-3">Method & data quality</div>
-        <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">One command, eight stages, nothing hard-coded.</h1>
+        <div className="text-xs font-medium uppercase tracking-[.14em] text-ink-3">How it works</div>
+        <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">From six spreadsheets to every number on this site, in seconds.</h1>
         <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink-2">
-          <code className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-sm">python -m pipeline.run</code> reads the six CSVs and writes everything on
-          this site in {summary.runtime_s.toFixed(1)} seconds. No supplier ID, material name or threshold tuned to this data appears in the code; a different
-          dataset with different suppliers and file names runs unchanged (there is a test for it).
+          The same steps run on the assignment data and on anything you upload. Nothing is tuned to one dataset — different suppliers,
+          materials and file names work without changes.
         </p>
         <a href={approachUrl} target="_blank" rel="noreferrer"
            className="mt-5 inline-block rounded-lg bg-ink px-3.5 py-2 text-sm font-medium text-bg hover:bg-ink-2">
-          {source === 'bundled' ? 'Read the approach document (PDF)' : 'Read the approach document for this data'}
+          {source === 'bundled' ? 'Read the full approach (PDF)' : 'Read the full approach for this data'}
         </a>
       </section>
 
-      <Section eyebrow="Pipeline" title="Stages">
+      <Section eyebrow="Step by step" title={`What happens in the ${summary.runtime_s.toFixed(0)} seconds`}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {STAGES.map(([key, n, t, d]) => (
             <Card key={n} className="p-4">
-              <div className="num text-xs text-ink-3">{n}{summary.stage_times[key] != null && ` · ${summary.stage_times[key].toFixed(2)}s`}</div>
+              <div className="num text-xs text-ink-3">Step {n}{summary.stage_times[key] != null && ` · ${summary.stage_times[key].toFixed(1)}s`}</div>
               <div className="mt-1 text-sm font-medium">{t}</div>
               <p className="mt-1 text-xs leading-relaxed text-ink-2">{d}</p>
             </Card>
@@ -56,44 +61,51 @@ export default function Method() {
         </div>
       </Section>
 
-      <Section eyebrow="Validation" title="Blind check against the sealed answer key"
-        lede={<>
-          <code className="font-mono text-[12px]">supplier_master.csv</code> contains an <code className="font-mono text-[12px]">is_underperformer</code> column — the answer.
-          It is removed at load time and never reaches scoring. Only after the ranking is frozen is it opened and compared.
-        </>}>
-        <div className="grid gap-3 md:grid-cols-3">
-          <Card className="p-4">
-            <div className="text-xs uppercase tracking-[.1em] text-ink-3">Dataset flags</div>
-            <div className="mt-1 text-lg font-semibold">{validation.flagged.join(', ')}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-xs uppercase tracking-[.1em] text-ink-3">Our bottom {validation.flagged.length}, computed without it</div>
-            <div className="mt-1 text-lg font-semibold">{validation.our_bottom.join(', ')}</div>
-            <div className="mt-1 text-xs text-ink-2">Ranks {Object.entries(validation.flagged_ranks).map(([k, v]) => `${k} #${v}`).join(', ')} of {validation.n_suppliers}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-xs uppercase tracking-[.1em] text-ink-3">Margin</div>
-            <div className="num mt-1 text-lg font-semibold">{validation.gap_to_next != null ? `${num(validation.gap_to_next, 0)} points` : '—'}</div>
-            <div className="mt-1 text-xs text-ink-2">Score gap between the bottom three and the next supplier up.</div>
-          </Card>
-        </div>
+      <Section eyebrow="Double-check" title="Did we find the right suppliers?"
+        lede={validation.available && validation.flagged.length
+          ? 'The supplier list includes a column marking the known problem suppliers — in effect, the answer. We set it aside, did the whole analysis without it, and only then compared.'
+          : 'This data has no list of known problem suppliers to compare against, so the ranking rests on the evidence alone.'}>
+        {validation.available && validation.flagged.length > 0 && (
+          <div className="grid gap-3 md:grid-cols-3">
+            <Card className="p-4">
+              <div className="text-xs uppercase tracking-[.1em] text-ink-3">The data’s own list</div>
+              <div className="mt-1 text-sm font-medium leading-relaxed">{validation.flagged.map(name).join(', ')}</div>
+            </Card>
+            <Card className="p-4">
+              <div className="text-xs uppercase tracking-[.1em] text-ink-3">Our bottom {validation.flagged.length}, found without it</div>
+              <div className="mt-1 text-sm font-medium leading-relaxed">{validation.our_bottom.map(name).join(', ')}</div>
+              <div className="mt-1 text-xs text-good">{validation.hits.length} of {validation.flagged.length} match</div>
+            </Card>
+            <Card className="p-4">
+              <div className="text-xs uppercase tracking-[.1em] text-ink-3">How clear-cut</div>
+              <div className="num mt-1 text-lg font-semibold">{validation.gap_to_next != null ? `${num(validation.gap_to_next, 0)} points` : '—'}</div>
+              <div className="mt-1 text-xs text-ink-2">between them and the next-worst supplier, on a 100-point score</div>
+            </Card>
+          </div>
+        )}
 
+        <h3 className="mt-8 text-sm font-medium">Does the answer depend on how the checks are weighted?</h3>
+        <p className="mt-1 text-sm text-ink-2">
+          {stability.stable
+            ? `No — the same ${stability.k} suppliers come out at the bottom however the checks are weighted.`
+            : `Partly — the bottom ${stability.k} change under some weightings, shown below.`}
+        </p>
         <div className="mt-3 overflow-x-auto rounded-xl border border-line">
           <table className="w-full min-w-[640px] text-sm">
             <thead className="bg-surface-2/60 text-[11px] uppercase tracking-[.08em] text-ink-3">
               <tr className="[&_th]:px-3 [&_th]:py-2.5 [&_th]:font-medium">
                 <th className="text-left">Weighting</th>
-                {summary.dimensions.map((d) => <th key={d.key} className="text-right">{DIMENSION_LABEL[d.key]}</th>)}
-                <th className="text-left">Bottom {stability.k}</th><th className="text-left">Same?</th>
+                {summary.dimensions.map((d) => <th key={d.key} className="text-right">{dimensionLabel[d.key]}</th>)}
+                <th className="text-left">Bottom {stability.k}</th><th className="text-left">Same result?</th>
               </tr>
             </thead>
             <tbody>
-              {Object.entries(stability.scenarios).map(([name, sc]) => (
-                <tr key={name} className="border-t border-line [&_td]:px-3 [&_td]:py-2">
-                  <td className="text-ink">{name.replace('_', ' ')}</td>
+              {Object.entries(stability.scenarios).map(([key, sc]) => (
+                <tr key={key} className="border-t border-line [&_td]:px-3 [&_td]:py-2">
+                  <td className="text-ink">{WEIGHTING_NAME[key] ?? key.replace('_', ' ')}</td>
                   {summary.dimensions.map((d) => <td key={d.key} className="num text-right text-ink-2">{num(sc.weights[d.key] * 100)}%</td>)}
-                  <td className="num text-ink-2">{sc.bottom.join(', ')}</td>
-                  <td>{sc.same_as_base ? <Pill>✓ yes</Pill> : <Pill tone="crit">✗ differs</Pill>}</td>
+                  <td className="text-ink-2">{sc.bottom.map(name).join(', ')}</td>
+                  <td>{sc.same_as_base ? <Pill>✓ Same</Pill> : <Pill tone="crit">Different</Pill>}</td>
                 </tr>
               ))}
             </tbody>
@@ -101,9 +113,9 @@ export default function Method() {
         </div>
       </Section>
 
-      <Section eyebrow="Choices" title="Assumptions, stated">
+      <Section eyebrow="Choices" title="Decisions we made, and why">
         <Card className="divide-y divide-line">
-          {ASSUMPTIONS.map(([k, v]) => (
+          {CHOICES.map(([k, v]) => (
             <div key={k} className="grid gap-1 px-5 py-3 sm:grid-cols-[11rem_1fr] sm:gap-4">
               <div className="text-sm font-medium">{k}</div>
               <div className="text-sm leading-relaxed text-ink-2">{v}</div>
@@ -112,50 +124,55 @@ export default function Method() {
         </Card>
       </Section>
 
-      <Section eyebrow="Context" title="Published market index vs what the panel pays"
-        lede="Shown in briefs only where the index is within a plausible band of transacted prices.">
-        <div className="overflow-x-auto rounded-xl border border-line">
-          <table className="w-full min-w-[560px] text-sm">
-            <thead className="bg-surface-2/60 text-[11px] uppercase tracking-[.08em] text-ink-3">
-              <tr className="[&_th]:px-3 [&_th]:py-2.5 [&_th]:font-medium">
-                <th className="text-left">Material</th><th className="text-right">Index ({summary.index_context[0]?.index_month})</th>
-                <th className="text-right">Panel median</th><th className="text-right">Panel ÷ index</th><th className="text-left">Used</th>
-              </tr>
-            </thead>
-            <tbody>
-              {summary.index_context.map((r) => (
-                <tr key={r.material} className="border-t border-line [&_td]:px-3 [&_td]:py-2">
-                  <td>{r.material}</td>
-                  <td className="num text-right text-ink-2">{inr(r.index_price)}</td>
-                  <td className="num text-right text-ink-2">{inr(r.panel_median)}</td>
-                  <td className="num text-right text-ink-2">{r.panel_vs_index.toFixed(2)}×</td>
-                  <td>{r.usable ? <Pill>as context</Pill> : <Pill tone="crit">rejected — different scale</Pill>}</td>
+      {summary.index_context.length > 0 && (
+        <Section eyebrow="Market prices" title="Why we don’t judge prices against the published index"
+          lede={`It covers only ${summary.index_context.length} of ${summary.counts.materials} materials, and where it exists every supplier charges well above it — so it can’t show who is overcharging. Suppliers are compared with each other instead; the index is quoted in briefs for reference.`}>
+          <div className="overflow-x-auto rounded-xl border border-line">
+            <table className="w-full min-w-[560px] text-sm">
+              <thead className="bg-surface-2/60 text-[11px] uppercase tracking-[.08em] text-ink-3">
+                <tr className="[&_th]:px-3 [&_th]:py-2.5 [&_th]:font-medium">
+                  <th className="text-left">Material</th><th className="text-right">Published price ({summary.index_context[0]?.index_month})</th>
+                  <th className="text-right">What suppliers charge</th><th className="text-right">Difference</th><th className="text-left">Used</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Section>
+              </thead>
+              <tbody>
+                {summary.index_context.map((r) => (
+                  <tr key={r.material} className="border-t border-line [&_td]:px-3 [&_td]:py-2">
+                    <td>{r.material}</td>
+                    <td className="num text-right text-ink-2">{inr(r.index_price)}</td>
+                    <td className="num text-right text-ink-2">{inr(r.panel_median)}</td>
+                    <td className="num text-right text-ink-2">{r.panel_vs_index >= 1 ? '+' : ''}{num((r.panel_vs_index - 1) * 100, 0)}%</td>
+                    <td>{r.usable ? <Pill>For reference</Pill> : <Pill tone="crit">Ignored — different scale</Pill>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Section>
+      )}
 
-      <Section eyebrow="Data quality" title={`${quality.findings.length} findings, ${quality.n_warnings} warnings`}
-        lede="Everything the pipeline noticed and what it did about it. Nothing is dropped or fixed silently.">
-        <Card className="divide-y divide-line">
-          {quality.findings.map((f, i) => (
-            <div key={i} className="grid gap-1 px-5 py-3 sm:grid-cols-[6.5rem_1fr] sm:gap-4">
-              <div className="flex items-start gap-2">
-                <span className="num text-xs text-ink-3">{f.stage}</span>
-              </div>
-              <div>
+      <Section eyebrow="Data quality" title="What we noticed in the data"
+        lede={warnings.length
+          ? `${warnings.length} thing${warnings.length === 1 ? '' : 's'} worth knowing, and what was done about each. Nothing is changed silently.`
+          : 'No problems found. Nothing is changed silently.'}>
+        {warnings.length > 0 && (
+          <Card className="divide-y divide-line">
+            {warnings.map((f, i) => (
+              <div key={i} className="px-5 py-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-medium">{f.title}</span>
-                  {f.severity !== 'info' && <Pill tone={sev[f.severity]}>{f.severity}</Pill>}
-                  {f.action && <span className="text-xs text-ink-3">→ {f.action}</span>}
+                  {f.action && <Pill>{f.action}</Pill>}
                 </div>
                 <div className="mt-0.5 text-sm leading-relaxed text-ink-2">{f.detail}</div>
               </div>
-            </div>
+            ))}
+          </Card>
+        )}
+        <Explain label={`Show all ${routine.length} routine checks`}>
+          {routine.map((f, i) => (
+            <p key={i}><span className="text-ink-2">{f.title}.</span> {f.detail}</p>
           ))}
-        </Card>
+        </Explain>
       </Section>
     </div>
   )

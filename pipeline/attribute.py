@@ -78,12 +78,12 @@ FEATURES = [
 ]
 
 FEATURE_LABELS = {
-    "recency": "How recently their last batch of this material arrived",
-    "material_share": "Their share of this material received in the prior window",
-    "rejection_rate": "Share of their deliveries rejected at our inspection",
-    "short_rate": "Share of ordered quantity they failed to deliver",
-    "late_days": "Average days late on delivery",
-    "return_prior": "Returns previously traced to them, per 1,000 MT supplied",
+    "recency": "How recently they delivered this material",
+    "material_share": "How much of this material they supplied recently",
+    "rejection_rate": "How much of their material we rejected",
+    "short_rate": "How often they delivered short",
+    "late_days": "How late they usually deliver",
+    "return_prior": "How many returns were already traced to them",
 }
 
 
@@ -307,11 +307,11 @@ def _baselines(train: pd.DataFrame, truth: pd.Series) -> dict:
     b["uniform"] = 1.0 / b.groupby("return_id")["supplier_id"].transform("count")
     return {
         "most_recent_batch": {
-            "label": "Most recent batch of that material (the rule in the problem statement)",
+            "label": "Blame whoever delivered that material last (the assignment’s rule)",
             **_score(b, "ps_rule", truth)},
-        "volume_share": {"label": "Split by share of that material supplied",
+        "volume_share": {"label": "Split by who supplied most of that material",
                          **_score(b, "by_volume", truth)},
-        "uniform": {"label": "Equal split across all suppliers",
+        "uniform": {"label": "Split equally between all suppliers",
                     **_score(b, "uniform", truth)},
     }
 

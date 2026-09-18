@@ -98,8 +98,8 @@
       <ul class="tight">
         {% for p in b.pushback %}<li>{{ p }}</li>{% endfor %}
       </ul>
-      <h2>Weakest dimensions</h2>
-      <div>{{ b.drivers | join(" · ") if b.drivers else "None below panel median" }}</div>
+      <h2>Where they fall short</h2>
+      <div>{{ b.drivers | join(" · ") if b.drivers else "No area well below a typical supplier" }}</div>
     </div>
   </div>
 

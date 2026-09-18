@@ -130,3 +130,31 @@ const TONE_TEXT: Record<Tone, string> = { crit: 'text-crit', warn: 'text-warn', 
 
 /** Text colour class for a 0-100 score. */
 export const scoreText = (score: number) => TONE_TEXT[toneFor(score)]
+
+/**
+ * The technical "how" behind a figure, folded away. Pages lead with what a
+ * number means; the method is one click away for anyone checking it.
+ */
+export function Explain({ children, label = 'How is this worked out?' }: { children: ReactNode; label?: string }) {
+  return (
+    <details className="group mt-3 text-xs text-ink-3">
+      <summary className="inline-flex cursor-pointer list-none items-center gap-1 select-none hover:text-ink-2 [&::-webkit-details-marker]:hidden">
+        <span className="transition-transform group-open:rotate-90" aria-hidden>›</span>
+        {label}
+      </summary>
+      <div className="mt-2 max-w-3xl space-y-1.5 border-l border-line pl-3 leading-relaxed">{children}</div>
+    </details>
+  )
+}
+
+/** A plain-language judgement next to a number: colour plus words, never colour alone. */
+export function Verdict({ tone, children }: { tone: Tone; children: ReactNode }) {
+  const cls = { crit: 'bg-crit/12 text-crit', warn: 'bg-warn/12 text-warn', good: 'bg-good/12 text-good' }[tone]
+  const icon = { crit: '▲', warn: '●', good: '✓' }[tone]
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium ${cls}`}>
+      <span aria-hidden className="text-[9px]">{icon}</span>
+      {children}
+    </span>
+  )
+}

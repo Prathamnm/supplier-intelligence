@@ -53,9 +53,9 @@ export function PanelStrip({ rows }: { rows: Supplier[] }) {
         })}
       </div>
       <div className="mt-2 flex justify-between border-t border-line pt-2 text-[11px] uppercase tracking-[.1em] text-ink-3">
-        <span>Best scorecard</span>
-        <span className="hidden sm:inline">Bar height = ₹ lost to short delivery, returns and rejections</span>
-        <span>Worst scorecard</span>
+        <span>← Best suppliers</span>
+        <span className="hidden sm:inline">Taller bar = more money lost</span>
+        <span>Worst suppliers →</span>
       </div>
       {hover && (
         <Tip x={hover.x} y={hover.y}>

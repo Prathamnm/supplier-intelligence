@@ -15,12 +15,12 @@ type Col = {
 const COLS: Col[] = [
   { key: 'rank', label: 'Rank', render: (s) => String(s.rank), align: 'right' },
   { key: 'score', label: 'Score', render: (s) => s.score.toFixed(0), align: 'right' },
-  { key: 'short_delivery_pct', label: 'Short %', title: 'Quantity not delivered / quantity ordered', render: (s) => pct(s.short_delivery_pct, 2), align: 'right' },
-  { key: 'mean_days_late', label: 'Days late', title: 'Average days late per order', render: (s) => num(s.mean_days_late, 1), align: 'right' },
-  { key: 'quality_rejection_pct', label: 'Quality %', title: 'Rejected at inspection + returned by customers, as % of quantity received', render: (s) => pct(s.quality_rejection_pct, 2), align: 'right' },
-  { key: 'price_premium_pct', label: 'Price vs peers', title: 'Average premium over other suppliers, same material and quarter', render: (s) => `${s.price_premium_pct > 0 ? '+' : ''}${pct(s.price_premium_pct)}`, align: 'right' },
-  { key: 'rubric_core_total', label: 'Short + returns', title: 'The problem statement formula', render: (s) => inrShort(s.rubric_core_total), align: 'right' },
-  { key: 'total_impact', label: 'Total ₹', render: (s) => inrShort(s.total_impact), align: 'right' },
+  { key: 'short_delivery_pct', label: 'Short', title: 'Share of the ordered quantity that never arrived', render: (s) => pct(s.short_delivery_pct, 2), align: 'right' },
+  { key: 'mean_days_late', label: 'Days late', title: 'Average delay per order, in days', render: (s) => num(s.mean_days_late, 1), align: 'right' },
+  { key: 'quality_rejection_pct', label: 'Rejected / returned', title: 'Share of what arrived that we rejected or customers sent back', render: (s) => pct(s.quality_rejection_pct, 2), align: 'right' },
+  { key: 'price_premium_pct', label: 'Price vs others', title: 'How much more (or less) they charge than other suppliers for the same material', render: (s) => `${s.price_premium_pct > 0 ? '+' : ''}${pct(s.price_premium_pct)}`, align: 'right' },
+  { key: 'rubric_core_total', label: 'Short + returns', title: 'Money lost to short deliveries and customer returns', render: (s) => inrShort(s.rubric_core_total), align: 'right' },
+  { key: 'total_impact', label: 'Total lost', render: (s) => inrShort(s.total_impact), align: 'right' },
 ]
 
 export function LeagueTable({ rows }: { rows: Supplier[] }) {

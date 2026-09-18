@@ -6,11 +6,11 @@ import { Tip } from './ui'
 
 // Fixed slot order -- colour follows the loss type, never its rank.
 export const LOSS_SERIES = [
-  { key: 'short_loss', label: 'Short delivery', color: 'var(--color-s1)', core: true },
-  { key: 'return_loss_recorded', label: 'Returns — recorded', color: 'var(--color-s2)', core: true },
-  { key: 'return_loss_inferred', label: 'Returns — inferred', color: 'var(--color-s3)', core: true },
-  { key: 'reject_loss', label: 'Rejected at inspection', color: 'var(--color-s4)', core: false },
-  { key: 'handling_loss', label: 'Return handling', color: 'var(--color-s5)', core: false },
+  { key: 'short_loss', label: 'Short delivery', color: 'var(--color-s1)' },
+  { key: 'return_loss_recorded', label: 'Returns (on record)', color: 'var(--color-s2)' },
+  { key: 'return_loss_inferred', label: 'Returns (likely theirs)', color: 'var(--color-s3)' },
+  { key: 'reject_loss', label: 'Rejected at the gate', color: 'var(--color-s4)' },
+  { key: 'handling_loss', label: 'Handling returns', color: 'var(--color-s5)' },
 ] as const
 
 type Key = (typeof LOSS_SERIES)[number]['key']
@@ -22,7 +22,6 @@ export function Legend() {
         <span key={s.key} className="inline-flex items-center gap-1.5">
           <span className="size-2.5 rounded-[3px]" style={{ background: s.color }} aria-hidden />
           {s.label}
-          {!s.core && <span className="text-ink-3">(additional)</span>}
         </span>
       ))}
     </div>

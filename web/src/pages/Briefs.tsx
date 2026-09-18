@@ -11,9 +11,8 @@ export default function Briefs() {
         <div className="text-xs font-medium uppercase tracking-[.14em] text-ink-3">D4 · Negotiation briefs</div>
         <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">{briefs.length} negotiation briefs, two A4 pages each, ready to print.</h1>
         <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink-2">
-          Page one is what Kiran carries into the room: the rupee figure with its arithmetic, numbered asks with the evidence behind each,
-          and what the supplier is likely to say back. Page two lists the purchase orders to put on the table and a per-material breakdown.
-          Only recorded returns are claimed; inferred returns are shown as an estimate.
+          One for each of the worst suppliers. Page one is for the meeting: how much they cost you, exactly what to ask for and the
+          evidence behind each ask, and what they’re likely to say back. Page two lists the orders to put on the table.
         </p>
       </section>
 
@@ -44,11 +43,11 @@ export default function Briefs() {
               <div className="mt-auto flex gap-2 pt-5">
                 {b.files.pdf && (
                   <a href={briefUrl(b.files.pdf)} target="_blank" rel="noreferrer"
-                    className="rounded-lg bg-ink px-3.5 py-2 text-sm font-medium text-bg hover:bg-ink-2">Download PDF</a>
+                    className="rounded-lg bg-ink px-3.5 py-2 text-sm font-medium text-bg hover:bg-ink-2">Download (PDF)</a>
                 )}
                 {b.files.html && (
                   <a href={briefUrl(b.files.html)} target="_blank" rel="noreferrer"
-                    className="rounded-lg border border-line px-3.5 py-2 text-sm text-ink-2 hover:text-ink">Print view</a>
+                    className="rounded-lg border border-line px-3.5 py-2 text-sm text-ink-2 hover:text-ink">Open to print</a>
                 )}
               </div>
             </Card>

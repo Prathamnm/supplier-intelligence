@@ -65,8 +65,8 @@ METRIC = {
 DIMENSION_LABELS = {
     "short_delivery": "Short delivery",
     "late_delivery": "Late delivery",
-    "quality_rejection": "Quality rejection",
-    "price_premium": "Price premium vs peers",
+    "quality_rejection": "Quality",
+    "price_premium": "Price",
 }
 
 
