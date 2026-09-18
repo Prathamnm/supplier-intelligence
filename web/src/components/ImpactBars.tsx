@@ -35,7 +35,7 @@ export function ImpactBars({ rows, limit = 12 }: { rows: Supplier[]; limit?: num
   const [hover, setHover] = useState<{ s: Supplier; k: Key; x: number; y: number } | null>(null)
 
   return (
-    <div className="relative" onMouseLeave={() => setHover(null)}>
+    <div className="relative" data-bars>
       <div className="space-y-2">
         {top.map((s) => (
           <div key={s.supplier_id} className="grid grid-cols-[7.5rem_1fr_5.5rem] items-center gap-3 sm:grid-cols-[11rem_1fr_6.5rem]">
@@ -49,6 +49,8 @@ export function ImpactBars({ rows, limit = 12 }: { rows: Supplier[]; limit?: num
                 return (
                   <div
                     key={ser.key}
+                    role="img"
+                    aria-label={`${ser.label}: ${inr(v)}`}
                     className="h-full cursor-default first:rounded-l-[4px] last:rounded-r-[4px] transition-opacity"
                     style={{
                       width: `${(v / max) * 100}%`,
@@ -56,9 +58,10 @@ export function ImpactBars({ rows, limit = 12 }: { rows: Supplier[]; limit?: num
                       opacity: hover && (hover.s !== s || hover.k !== ser.key) ? 0.4 : 1,
                     }}
                     onMouseMove={(e) => {
-                      const r = (e.currentTarget.closest('.relative') as HTMLElement).getBoundingClientRect()
+                      const r = (e.currentTarget.closest('[data-bars]') as HTMLElement).getBoundingClientRect()
                       setHover({ s, k: ser.key, x: e.clientX - r.left, y: e.clientY - r.top })
                     }}
+                    onMouseLeave={() => setHover(null)}
                   />
                 )
               })}

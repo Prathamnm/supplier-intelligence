@@ -83,7 +83,7 @@ export const analyseSample = (name: string) =>
 export function createAnalysis(files: File[], onUpload: (fraction: number) => void): Promise<AnalysisMeta> {
   return new Promise((resolve, reject) => {
     const form = new FormData()
-    files.forEach((f) => form.append('files', f, f.name))
+    for (const f of files) form.append('files', f, f.name)
     const xhr = new XMLHttpRequest()
     xhr.open('POST', apiUrl('/analyses'))
     xhr.responseType = 'json'

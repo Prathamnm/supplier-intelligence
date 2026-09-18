@@ -15,7 +15,10 @@ const Upload = lazy(() => import('./pages/Upload'))
 
 // Hash routing: the build is a folder of static files that works on any
 // host, including a plain file server, with no rewrite rules.
-createRoot(document.getElementById('root')!).render(
+const root = document.getElementById('root')
+if (!root) throw new Error('index.html is missing the #root element')
+
+createRoot(root).render(
   <StrictMode>
     <DatasetProvider>
     <HashRouter>

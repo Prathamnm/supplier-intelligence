@@ -127,7 +127,7 @@ export default function Upload() {
   }
 
   async function run() {
-    const files = required.map((r) => found.get(r)!.file)
+    const files = required.flatMap((r) => found.get(r)?.file ?? [])
     try {
       setPhase({ kind: 'uploading', fraction: 0 })
       const meta = await createAnalysis(files, (fraction) => {
@@ -181,7 +181,8 @@ export default function Upload() {
 
       <Section eyebrow="Step 1" title="Add the files">
         <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <div
+          <section
+            aria-label="Drop CSV files here"
             onDragOver={(e) => {
               e.preventDefault()
               setDragging(true)
@@ -216,7 +217,7 @@ export default function Upload() {
                 e.target.value = ''
               }}
             />
-          </div>
+          </section>
 
           <Card className="p-5">
             <div className="flex items-baseline justify-between">
@@ -230,10 +231,11 @@ export default function Upload() {
                   <li key={r} className="flex items-center gap-3 text-sm">
                     <span
                       className={`grid size-5 shrink-0 place-items-center rounded-full text-[11px] font-bold ${p ? 'bg-good/15 text-good' : 'bg-surface-2 text-ink-3'}`}
-                      aria-label={p ? 'present' : 'missing'}
+                      aria-hidden
                     >
                       {p ? '✓' : ''}
                     </span>
+                    <span className="sr-only">{p ? 'Present:' : 'Missing:'}</span>
                     <span className={p ? 'text-ink' : 'text-ink-3'}>{FILE_LABEL[r] ?? r}</span>
                     {p && <span className="ml-auto truncate text-xs text-ink-3" title={p.file.name}>{p.file.name}</span>}
                   </li>
@@ -273,6 +275,7 @@ export default function Upload() {
                     </td>
                     <td className="text-right">
                       <button
+                        type="button"
                         onClick={() => setPicked((prev) => prev.filter((x) => x !== p))}
                         disabled={busy}
                         className="text-xs text-ink-3 hover:text-crit"
@@ -292,6 +295,7 @@ export default function Upload() {
       <Section eyebrow="Step 2" title="Run the analysis">
         <Card className="flex flex-wrap items-center gap-4 p-5">
           <button
+            type="button"
             onClick={run}
             disabled={!ready}
             className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
@@ -337,6 +341,7 @@ export default function Upload() {
                 </div>
                 <p className="mt-1 text-xs leading-relaxed text-ink-2">{s.purpose}</p>
                 <button
+                  type="button"
                   onClick={() => runSample(s)}
                   disabled={busy}
                   className="mt-3 self-start rounded-lg border border-line px-3 py-1.5 text-sm text-ink-2 hover:border-accent hover:text-ink disabled:opacity-40"

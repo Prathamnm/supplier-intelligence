@@ -18,9 +18,16 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
       <div className="mx-auto max-w-xl py-24 text-center">
         <div className="text-lg font-semibold">This view could not be displayed.</div>
         <p className="mt-2 text-sm text-ink-2">{this.state.error.message}</p>
-        <a href="#/" onClick={() => this.setState({ error: null })} className="mt-4 inline-block text-sm text-accent">
+        <button
+          type="button"
+          onClick={() => {
+            window.location.hash = '#/'
+            this.setState({ error: null })
+          }}
+          className="mt-4 text-sm text-accent hover:underline"
+        >
           Back to overview
-        </a>
+        </button>
       </div>
     )
   }

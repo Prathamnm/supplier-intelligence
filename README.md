@@ -36,7 +36,7 @@ ruff check pipeline tests
 cd web
 npm install
 npm run dev                       # http://localhost:5173
-npm run check                     # eslint + tsc
+npm run check                     # Biome lint + TypeScript
 npm run build                     # static site in web/dist
 npm run pipeline                  # re-run the Python analysis from here
 
@@ -106,7 +106,7 @@ The harness found weaknesses the assignment data could not reveal — relative s
 The pipeline and the web app share one contract: [`web/src/lib/types.ts`](web/src/lib/types.ts).
 [`tests/test_contract.py`](tests/test_contract.py) parses those interfaces and fails if any required field is
 missing from the pipeline's output, or if the JSON committed under `web/src/data/` is stale relative to a fresh run.
-CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs ruff + pytest and eslint + tsc + build on every push.
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs ruff + pytest and Biome + tsc + build on every push.
 
 Bundle: app code and overview data load in ~29 KB gzipped; React ships as a separately cached vendor chunk; per-supplier
 detail and the returns table load only with the pages that use them.

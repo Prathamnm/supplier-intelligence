@@ -28,7 +28,7 @@ export default function Attribution() {
     { key: 'model', label: 'Our model', ...a.metrics },
     ...Object.entries(a.baselines).map(([key, b]) => ({ key, ...b })),
   ]
-  const m = METRICS.find((x) => x.key === metric)!
+  const m = METRICS.find((x) => x.key === metric) ?? METRICS[0]
   const max = Math.max(...methods.map((x) => x[metric]), 0.01)
   const rule = a.baselines.most_recent_batch
 
@@ -105,7 +105,7 @@ export default function Attribution() {
         aside={
           <div className="flex flex-wrap rounded-lg border border-line bg-surface p-0.5 text-xs">
             {METRICS.map((x) => (
-              <button key={x.key} onClick={() => setMetric(x.key)}
+              <button key={x.key} type="button" onClick={() => setMetric(x.key)}
                 className={`rounded-md px-2.5 py-1.5 ${metric === x.key ? 'bg-surface-2 text-ink' : 'text-ink-3 hover:text-ink'}`}>
                 {x.label}
               </button>

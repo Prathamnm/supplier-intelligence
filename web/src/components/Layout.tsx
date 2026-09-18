@@ -16,6 +16,7 @@ export function Layout() {
   const { pathname } = useLocation()
   const { dataset, reset, notice } = useDatasetState()
   const { summary, approachUrl } = dataset
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname is the trigger -- scroll to top on every route change
   useEffect(() => window.scrollTo(0, 0), [pathname])
 
   return (
@@ -69,13 +70,14 @@ export function Layout() {
                   {dataset.meta?.runtime_s?.toFixed(1) ?? '—'}s
                 </span>
                 <button
+                  type="button"
                   onClick={() => navigator.clipboard?.writeText(`${window.location.origin}${window.location.pathname}#/?analysis=${dataset.key}`)}
                   className="ml-auto text-ink-3 hover:text-ink"
                   title="Copy a link that opens this analysis (while the server keeps it)"
                 >
                   Copy link
                 </button>
-                <button onClick={reset} className="text-accent hover:underline">Back to assignment data</button>
+                <button type="button" onClick={reset} className="text-accent hover:underline">Back to assignment data</button>
               </>
             )}
           </div>

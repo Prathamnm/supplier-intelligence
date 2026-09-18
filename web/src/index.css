@@ -34,6 +34,8 @@
 @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
+  /* !important is intended: reduced motion must override every animation, including third-party ones. */
+  /* biome-ignore lint/complexity/noImportantStyles: accessibility override, see above */
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 

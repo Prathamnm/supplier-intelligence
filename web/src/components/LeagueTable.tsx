@@ -66,7 +66,7 @@ export function LeagueTable({ rows }: { rows: Supplier[] }) {
                   aria-sort={sort.key === c.key ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none'}
                   className={`px-3 py-2.5 font-medium ${c.align === 'right' ? 'text-right' : 'text-left'}`}
                 >
-                  <button onClick={() => toggle(c.key)} className="inline-flex items-center gap-1 uppercase hover:text-ink">
+                  <button type="button" onClick={() => toggle(c.key)} className="inline-flex items-center gap-1 uppercase hover:text-ink">
                     {c.label}
                     <span className={sort.key === c.key ? 'text-accent' : 'opacity-0'}>{sort.dir === 1 ? '↑' : '↓'}</span>
                   </button>

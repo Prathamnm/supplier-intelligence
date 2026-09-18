@@ -157,8 +157,8 @@ export default function Method() {
           : 'No problems found. Nothing is changed silently.'}>
         {warnings.length > 0 && (
           <Card className="divide-y divide-line">
-            {warnings.map((f, i) => (
-              <div key={i} className="px-5 py-3">
+            {warnings.map((f) => (
+              <div key={`${f.stage}-${f.title}-${f.detail}`} className="px-5 py-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-medium">{f.title}</span>
                   {f.action && <Pill>{f.action}</Pill>}
@@ -169,8 +169,8 @@ export default function Method() {
           </Card>
         )}
         <Explain label={`Show all ${routine.length} routine checks`}>
-          {routine.map((f, i) => (
-            <p key={i}><span className="text-ink-2">{f.title}.</span> {f.detail}</p>
+          {routine.map((f) => (
+            <p key={`${f.stage}-${f.title}-${f.detail}`}><span className="text-ink-2">{f.title}.</span> {f.detail}</p>
           ))}
         </Explain>
       </Section>
