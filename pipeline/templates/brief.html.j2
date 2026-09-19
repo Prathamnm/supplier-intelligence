@@ -59,7 +59,7 @@
 <section class="page">
   <div class="head">
     <div>
-      <div class="muted" style="font-size:8.4pt;letter-spacing:.06em;text-transform:uppercase">Arora Traders · Supplier negotiation brief · Confidential</div>
+      <div class="muted" style="font-size:8.4pt;letter-spacing:.06em;text-transform:uppercase">{% if company %}{{ company }} · {% endif %}Supplier negotiation brief · Confidential</div>
       <h1>{{ b.supplier_name }} <span class="muted" style="font-weight:500">{{ b.supplier_id }}</span>{% if b.replace %}<span class="tag">Replacement candidate</span>{% endif %}</h1>
     </div>
     <div class="meta">

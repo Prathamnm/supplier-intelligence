@@ -155,3 +155,10 @@ def test_real_pdf_print(tmp_path):
     if not ok:
         pytest.skip("browser present but could not print here")
     assert (tmp_path / "page.pdf").read_bytes().startswith(b"%PDF")
+
+
+def test_uploaded_briefs_do_not_name_the_assignment_company(client, tmp_path):
+    meta = _upload(client, make_synthetic(tmp_path / "raw")).json()
+    brief = client.get(f"/api/analyses/{meta['id']}/data/briefs.json").json()[0]
+    page = client.get(f"/api/analyses/{meta['id']}/briefs/{brief['files']['html']}").text
+    assert "Supplier negotiation brief" in page and "Arora" not in page

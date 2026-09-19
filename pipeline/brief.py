@@ -304,7 +304,8 @@ def _to_pdf(html: Path, pdf: Path, browser: str) -> bool:
     return False
 
 
-def render(briefs: list[dict], out_dir: Path, pdf: bool = True) -> dict[str, dict]:
+def render(briefs: list[dict], out_dir: Path, pdf: bool = True,
+           company: str | None = None) -> dict[str, dict]:
     env = Environment(loader=FileSystemLoader(config.TEMPLATES),
                       autoescape=select_autoescape(["html", "j2"]))
     env.filters["inr"] = inr
@@ -322,7 +323,7 @@ def render(briefs: list[dict], out_dir: Path, pdf: bool = True) -> dict[str, dic
     files: dict[str, dict] = {}
     for b in briefs:
         html_path = out_dir / f"{b['supplier_id']}.html"
-        html_path.write_text(template.render(b=b), encoding="utf-8")
+        html_path.write_text(template.render(b=b, company=company), encoding="utf-8")
         entry = {"html": html_path.name}
         if browser:
             pdf_path = out_dir / f"{b['supplier_id']}.pdf"

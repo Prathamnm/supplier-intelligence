@@ -159,6 +159,10 @@ CATEGORY_FLAG_MULTIPLE = 2.0
 # ------------------------------------------------------------- output
 
 # Where the project lives, quoted in the approach document.
+# The business in the assignment data. Briefs name it only for that data;
+# an uploaded dataset gets a neutral header.
+COMPANY = "Arora Traders"
+
 LIVE_URL = "https://supplier-intelligence-iota.vercel.app"
 REPO_URL = "https://github.com/Prathamnm/supplier-intelligence"
 

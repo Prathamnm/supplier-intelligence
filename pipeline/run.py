@@ -87,7 +87,8 @@ def run(raw: Path | None = None, pdf: bool = True, web: bool = True,
                             ds.supplier_master, idx_ctx, replacements) for sid in worst]
 
     out_briefs = config.WEB_BRIEFS if web else out / "briefs"
-    files = brief.render(briefs, out_briefs, pdf=pdf)
+    company = config.COMPANY if raw is None or Path(raw).resolve() == config.RAW.resolve() else None
+    files = brief.render(briefs, out_briefs, pdf=pdf, company=company)
     for b in briefs:
         b["files"] = files.get(b["supplier_id"], {})
     t.mark("07 briefs")
