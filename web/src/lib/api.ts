@@ -14,12 +14,19 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+// A free-tier host can take up to a minute to wake; beyond that, give up
+// and say so rather than leaving the page waiting forever.
+const CONNECT_TIMEOUT_MS = 90_000
+
+async function request<T>(path: string, init?: RequestInit, timeoutMs = CONNECT_TIMEOUT_MS): Promise<T> {
   let res: Response
   try {
-    res = await fetch(apiUrl(path), init)
-  } catch {
-    throw new ApiError(0, 'The analysis server could not be reached.')
+    res = await fetch(apiUrl(path), { ...init, signal: init?.signal ?? AbortSignal.timeout(timeoutMs) })
+  } catch (e) {
+    const timedOut = e instanceof DOMException && e.name === 'TimeoutError'
+    throw new ApiError(0, timedOut
+      ? 'The analysis server did not respond in time.'
+      : 'The analysis server could not be reached.')
   }
   if (!res.ok) throw new ApiError(res.status, await detail(res))
   return res.json() as Promise<T>

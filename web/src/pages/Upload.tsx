@@ -75,7 +75,11 @@ export default function Upload() {
     return () => clearTimeout(t)
   }, [server])
 
+  const [attempt, setAttempt] = useState(0)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `attempt` is the trigger for "Try again"
   useEffect(() => {
+    setServer('checking')
+    setSlow(false)
     Promise.all([getSchema(), getSamples()])
       .then(([s, samp]) => {
         setSchema(s)
@@ -83,7 +87,7 @@ export default function Upload() {
         setServer('up')
       })
       .catch(() => setServer('down'))
-  }, [])
+  }, [attempt])
 
   // A ticking clock while the server analyses, so the wait reads as progress.
   useEffect(() => {
@@ -170,12 +174,24 @@ export default function Upload() {
 
       {server === 'down' && (
         <Card className="border-warn/40 p-5">
-          <div className="font-medium text-warn">The analysis server isn’t reachable.</div>
+          <div className="font-medium text-warn">The analysis server isn’t responding.</div>
           <p className="mt-1 text-sm text-ink-2">
-            Uploads need the Python API. Locally, start it from the project folder with{' '}
-            <code className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[12px]">uvicorn api.main:app --port 8000</code>{' '}
-            and reload this page. The rest of the site keeps working with the built-in assignment data.
+            Uploads need the Python API, which is either still starting up or unavailable. The rest of the site keeps working
+            with the built-in assignment data.
           </p>
+          <button
+            type="button"
+            onClick={() => setAttempt((n) => n + 1)}
+            className="mt-3 rounded-lg border border-line px-3 py-1.5 text-sm text-ink-2 hover:border-accent hover:text-ink"
+          >
+            Try again
+          </button>
+          {import.meta.env.DEV && (
+            <p className="mt-3 text-xs text-ink-3">
+              Running locally? Start it from the project folder with{' '}
+              <code className="rounded bg-surface-2 px-1.5 py-0.5 font-mono">uvicorn api.main:app --port 8000</code>.
+            </p>
+          )}
         </Card>
       )}
 
