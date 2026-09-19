@@ -36,3 +36,6 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
+      # Clicks through every page in headless Chrome; fails on any JS error
+      # or blank page (catches bugs that only appear on in-app navigation).
+      - run: npm run smoke

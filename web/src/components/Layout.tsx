@@ -16,8 +16,13 @@ export function Layout() {
   const { pathname } = useLocation()
   const { dataset, reset, notice } = useDatasetState()
   const { summary, approachUrl } = dataset
+  // Scroll to the top on every route change. The braces matter: newer browsers
+  // make scrollTo() return a Promise, and an effect that returns anything but a
+  // cleanup function crashes React on the next navigation (blank page).
   // biome-ignore lint/correctness/useExhaustiveDependencies: pathname is the trigger -- scroll to top on every route change
-  useEffect(() => window.scrollTo(0, 0), [pathname])
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
 
   return (
     <div className="min-h-dvh">

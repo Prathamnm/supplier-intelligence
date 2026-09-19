@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome lint",
     "check": "npm run lint && npm run typecheck",
-    "pipeline": "cd .. && python -m pipeline.run"
+    "pipeline": "cd .. && python -m pipeline.run",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "react": "^19.2.0",

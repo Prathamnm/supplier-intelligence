@@ -38,6 +38,7 @@ npm install
 npm run dev                       # http://localhost:5173
 npm run check                     # Biome lint + TypeScript
 npm run build                     # static site in web/dist
+npm run smoke                     # click through every page in headless Chrome
 npm run pipeline                  # re-run the Python analysis from here
 
 # 3. Upload API (for the Upload page) -- run alongside `npm run dev`
