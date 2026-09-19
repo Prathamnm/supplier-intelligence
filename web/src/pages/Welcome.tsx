@@ -11,7 +11,7 @@ const REPO_URL = 'https://github.com/Prathamnm/supplier-intelligence'
 
 export default function Welcome() {
   const { search } = useLocation()
-  const { summary, briefs, approachUrl } = useDataset()
+  const { summary, briefs } = useDataset()
   const { counts, totals } = summary
 
   // The upload API sleeps when idle; start waking it while the visitor reads this page.
@@ -28,10 +28,6 @@ export default function Welcome() {
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-2.5 px-4 sm:px-6">
           <BrandMark />
           <span className="text-sm font-semibold tracking-tight">Supplier Blindspot</span>
-          <a href={approachUrl} target="_blank" rel="noreferrer"
-             className="ml-auto rounded-md border border-line px-2.5 py-1.5 text-xs text-ink-2 hover:text-ink">
-            Write-up (PDF)
-          </a>
         </div>
       </header>
 
@@ -40,7 +36,7 @@ export default function Welcome() {
           <img src={logo} alt="MCCIA — Mahratta Chamber of Commerce, Industries and Agriculture" className="h-14 w-auto sm:h-[4.5rem]" />
 
           <div className="mt-10 text-xs font-medium uppercase tracking-[.14em] text-ink-3">
-            MCCIA Applied AI Studio · Problem Statement 4
+            MCCIA Applied AI Studio
           </div>
           <h1 className="mt-3 max-w-4xl text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">
             Supplier <span className="text-crit">Blindspot</span>
