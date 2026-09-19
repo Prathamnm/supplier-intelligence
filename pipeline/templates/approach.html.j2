@@ -2,166 +2,255 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>The Supplier Blindspot — approach, solution and assumptions</title>
+<title>Supplier Blindspot — approach, solution and assumptions</title>
 <style>
-  @page { size: A4; margin: 16mm 16mm 15mm; }
+  @page { size: A4; margin: 15mm 16mm 14mm; }
   * { box-sizing: border-box; }
   html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body { margin: 0; font: 9.6pt/1.5 "Segoe UI", system-ui, Arial, sans-serif; color: #17191e; }
-  h1 { font-size: 21pt; line-height: 1.15; margin: 0 0 4pt; letter-spacing: -.015em; }
-  h2 { font-size: 12.5pt; margin: 18pt 0 5pt; padding-top: 6pt; border-top: 1.5px solid #17191e; break-after: avoid; }
-  h3 { font-size: 10pt; margin: 10pt 0 3pt; break-after: avoid; }
+  body { margin: 0; font: 10pt/1.55 "Segoe UI", system-ui, Arial, sans-serif; color: #17191e; }
+  h1 { font-size: 24pt; line-height: 1.12; margin: 0 0 5pt; letter-spacing: -.02em; }
+  h2 { font-size: 13.5pt; margin: 20pt 0 6pt; break-after: avoid; letter-spacing: -.01em; }
+  h2 .no { display: inline-block; min-width: 18pt; color: #c24141; }
+  h3 { font-size: 10.5pt; margin: 10pt 0 3pt; break-after: avoid; }
   p { margin: 0 0 6pt; }
-  ul, ol { margin: 0 0 6pt; padding-left: 14pt; }
-  li { margin: 1.5pt 0; }
+  ul, ol { margin: 0 0 6pt; padding-left: 15pt; }
+  li { margin: 2pt 0; }
+  b { font-weight: 650; }
   .muted { color: #5b6170; }
-  .small { font-size: 8.4pt; }
-  code { font-family: Consolas, "JetBrains Mono", monospace; font-size: 8.4pt; background: #f1f2f5; padding: 0 3pt; border-radius: 2pt; }
-  table { width: 100%; border-collapse: collapse; margin: 4pt 0 8pt; font-size: 8.6pt; break-inside: avoid; }
-  th, td { text-align: left; padding: 3pt 5pt; border-bottom: 1px solid #e3e5ea; vertical-align: top; }
-  th { font-size: 7.6pt; text-transform: uppercase; letter-spacing: .05em; color: #5b6170; border-bottom: 1.5px solid #17191e; }
+  .small { font-size: 8.6pt; }
+  .red { color: #c24141; }
+  .green { color: #1f8a4c; }
+  code { font-family: Consolas, "JetBrains Mono", monospace; font-size: 8.6pt; background: #f1f2f5; padding: 0 3pt; border-radius: 2pt; }
+  table { width: 100%; border-collapse: collapse; margin: 5pt 0 9pt; font-size: 9pt; break-inside: avoid; }
+  th, td { text-align: left; padding: 4pt 6pt; border-bottom: 1px solid #e3e5ea; vertical-align: top; }
+  th { font-size: 7.6pt; text-transform: uppercase; letter-spacing: .06em; color: #5b6170; border-bottom: 1.5px solid #17191e; font-weight: 600; }
   td.n, th.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   tr.hl td { background: #fdf0f0; }
-  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6pt; margin: 10pt 0; }
-  .kpi { border: 1px solid #d9dce3; border-radius: 5pt; padding: 6pt 8pt; }
-  .kpi .l { font-size: 7.2pt; text-transform: uppercase; letter-spacing: .06em; color: #5b6170; }
-  .kpi .v { font-size: 13pt; font-weight: 700; margin-top: 1pt; font-variant-numeric: tabular-nums; }
-  .kpi .s { font-size: 7.8pt; color: #3d4250; }
-  .box { border-left: 3px solid #17191e; background: #f6f7f9; padding: 6pt 9pt; margin: 6pt 0 8pt; break-inside: avoid; }
-  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14pt; }
-  .links { display: flex; gap: 18pt; font-size: 8.8pt; margin: 2pt 0 4pt; }
+  tr.total td { border-top: 1.5px solid #17191e; font-weight: 650; }
+
+  .meta { display: flex; justify-content: space-between; font-size: 8.4pt; color: #5b6170; border-bottom: 2px solid #17191e; padding-bottom: 6pt; margin-bottom: 14pt; }
+  .lede { font-size: 11pt; color: #3d4250; margin-bottom: 8pt; }
+  .links { display: flex; gap: 18pt; font-size: 8.8pt; margin: 0 0 12pt; }
   .links a { color: #17191e; }
-  .meta { display: flex; justify-content: space-between; font-size: 8.4pt; color: #5b6170; border-bottom: 2px solid #17191e; padding-bottom: 6pt; margin-bottom: 10pt; }
+
+  .summary { border: 1.5px solid #17191e; border-radius: 6pt; padding: 10pt 12pt; margin: 4pt 0 12pt; break-inside: avoid; }
+  .summary h3 { margin: 0 0 5pt; font-size: 9pt; text-transform: uppercase; letter-spacing: .08em; color: #5b6170; }
+  .summary ol { margin: 0; }
+  .summary li { margin: 3pt 0; }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7pt; margin: 10pt 0; break-inside: avoid; }
+  .kpi { border: 1px solid #d9dce3; border-radius: 6pt; padding: 7pt 9pt; }
+  .kpi .l { font-size: 7.2pt; text-transform: uppercase; letter-spacing: .07em; color: #5b6170; }
+  .kpi .v { font-size: 15pt; font-weight: 700; margin-top: 2pt; font-variant-numeric: tabular-nums; }
+  .kpi .s { font-size: 7.9pt; color: #3d4250; line-height: 1.35; }
+
+  .box { border-left: 3px solid #17191e; background: #f6f7f9; padding: 7pt 10pt; margin: 6pt 0 9pt; break-inside: avoid; }
+  .box.note { border-color: #c98500; background: #fdf8ec; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16pt; }
+
+  /* the five steps */
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5pt; margin: 8pt 0 10pt; break-inside: avoid; }
+  .step { border: 1px solid #d9dce3; border-radius: 6pt; padding: 7pt 8pt; position: relative; background: #fff; }
+  .step .k { font-size: 7.2pt; font-weight: 700; color: #c24141; letter-spacing: .06em; }
+  .step .t { font-weight: 650; font-size: 9.4pt; margin: 1pt 0 2pt; line-height: 1.25; }
+  .step .d { font-size: 8pt; color: #3d4250; line-height: 1.35; }
+
+  /* simple horizontal bars */
+  .bars { margin: 6pt 0 10pt; break-inside: avoid; }
+  .bar { display: grid; grid-template-columns: 170pt 1fr 46pt; align-items: center; gap: 8pt; margin: 4pt 0; font-size: 9pt; }
+  .bar .track { height: 10pt; background: #eef0f3; border-radius: 3pt; overflow: hidden; }
+  .bar .fill { height: 100%; background: #9aa0ad; border-radius: 3pt; }
+  .bar .fill.red { background: #d45454; }
+  .bar .fill.dark { background: #17191e; }
+  .bar .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 650; }
+
+  .pill { display: inline-block; font-size: 7.8pt; padding: 0 5pt; border-radius: 8pt; background: #fbe6e6; color: #a83232; margin: 0 2pt 2pt 0; white-space: nowrap; }
+  .page-break { break-before: page; }
 </style>
 </head>
 <body>
 {% set a = s.attribution %}{% set b = s.bottom %}{% set v = s.validation %}
-<div class="meta"><span>MCCIA Applied AI Studio · PS 4 — The Supplier Blindspot</span><span>Approach, solution and assumptions</span></div>
-<h1>Finding the three suppliers who cost Arora Traders {{ b.total_impact | lakh }} — and putting the proof on paper</h1>
-<p class="muted">{{ "{:,}".format(s.counts.orders) }} purchase orders, {{ s.counts.returns }} customer returns and {{ s.counts.suppliers }} suppliers, {{ s.period.start }} to {{ s.period.end }}. Every figure in this document is generated by the same pipeline run as the web app and the briefs.</p>
+{% set DIM = {'short_delivery': 'Short deliveries', 'late_delivery': 'Late deliveries', 'quality_rejection': 'Poor quality', 'price_premium': 'High prices'} %}
+{% set bottom_rows = suppliers | selectattr('supplier_id', 'in', b.suppliers) | list %}
+{% set names = bottom_rows | map(attribute='supplier_name') | list %}
+{% set worst = bottom_rows[0] %}
+{% set rule = a.baselines.most_recent_batch %}
+
+<div class="meta"><span>MCCIA Applied AI Studio · Take-home assignment</span><span>Approach, solution and assumptions</span></div>
+
+<h1>Supplier Blindspot</h1>
+<p class="lede">Which suppliers are quietly costing Arora Traders money, how much, and what to say to them. This document explains how the answer was found, in plain words, and what was assumed along the way.</p>
 <div class="links"><span><b>Live app</b> <a href="{{ cfg.LIVE_URL }}">{{ cfg.LIVE_URL | replace('https://', '') }}</a></span><span><b>Source code</b> <a href="{{ cfg.REPO_URL }}">{{ cfg.REPO_URL | replace('https://', '') }}</a></span></div>
 
+<div class="summary">
+  <h3>The answer in one minute</h3>
+  <ol>
+    <li><b>{{ ['No', 'One', 'Two', 'Three', 'Four', 'Five'][names|length] if names|length < 6 else names|length }} suppliers are the problem: {{ names | join(', ') }}.</b> They get only {{ b.share_of_spend | pct(0) }} of the orders but cause {{ b.share_of_impact | pct(0) }} of all the money lost, <b>{{ b.total_impact | lakh }} over {{ '%.0f'|format(s.period.years) }} years</b>.</li>
+    <li><b>The money is lost in plain ways:</b> material that was billed but never arrived, material customers sent back, and material rejected at Arora’s own gate. Every rupee is worked out order by order and can be checked.</li>
+    <li><b>{{ s.counts.returns_blank }} of the {{ s.counts.returns }} customer returns had no supplier written down.</b> A model traces each one to its most likely supplier. When tested on returns where the answer was known, it put only {{ a.metrics.misallocation | pct }} of the value on the wrong supplier, against {{ rule.misallocation | pct(0) }} for the rule suggested in the assignment.</li>
+    {% if v.available and v.flagged %}<li><b>The result was double-checked.</b> The dataset secretly marks which suppliers are bad. That column was locked away and never used; opened at the end, it named the same {{ v.hits | length }} of {{ v.flagged | length }} suppliers.</li>{% endif %}
+    <li><b>Each bad supplier gets a ready-to-use negotiation brief</b>, with the money they owe, the orders that prove it and what they are likely to argue back. The recommendation is to replace them, and existing suppliers who can take over each material are named.</li>
+  </ol>
+</div>
+
 <div class="kpis">
-  <div class="kpi"><div class="l">Short delivery + returns</div><div class="v">{{ s.totals.rubric_core_total | lakh }}</div><div class="s">All suppliers, the problem statement’s formula</div></div>
-  <div class="kpi"><div class="l">Bottom three, total</div><div class="v">{{ b.total_impact | lakh }}</div><div class="s">{{ b.share_of_impact | pct(0) }} of all losses on {{ b.share_of_spend | pct(0) }} of spend</div></div>
-  <div class="kpi"><div class="l">Untraced returns</div><div class="v">{{ a.metrics.misallocation | pct }}</div><div class="s">value misallocated (vs {{ a.baselines.most_recent_batch.misallocation | pct(0) }} for the stated rule)</div></div>
-  {% if v.available and v.flagged %}<div class="kpi"><div class="l">Blind check</div><div class="v">{{ v.hits | length }} / {{ v.flagged | length }}</div><div class="s">bottom three found without the answer key</div></div>
-  {% else %}<div class="kpi"><div class="l">Blind check</div><div class="v">n/a</div><div class="s">no suppliers flagged in the answer key</div></div>{% endif %}
+  <div class="kpi"><div class="l">Lost to the bottom {{ names|length }}</div><div class="v red">{{ b.total_impact | lakh }}</div><div class="s">over {{ '%.0f'|format(s.period.years) }} years, from {{ b.share_of_spend | pct(0) }} of the orders</div></div>
+  <div class="kpi"><div class="l">Lost across all suppliers</div><div class="v">{{ s.totals.total_impact | lakh }}</div><div class="s">{{ s.counts.suppliers }} suppliers, {{ "{:,}".format(s.counts.orders) }} orders</div></div>
+  <div class="kpi"><div class="l">Untraced returns</div><div class="v">{{ s.counts.returns_blank }} of {{ s.counts.returns }}</div><div class="s">traced to their likely supplier</div></div>
+  {% if v.available and v.flagged %}<div class="kpi"><div class="l">Double-check</div><div class="v green">{{ v.hits | length }} of {{ v.flagged | length }}</div><div class="s">match the dataset’s hidden answer</div></div>
+  {% else %}<div class="kpi"><div class="l">Double-check</div><div class="v">n/a</div><div class="s">no hidden answer in this data</div></div>{% endif %}
 </div>
 
-<h2>1 · What was asked, and where each answer lives</h2>
+<h2><span class="no">1</span>The problem, in plain words</h2>
+<p>Arora Traders buys steel from {{ s.counts.suppliers }} suppliers. Some deliver less than they bill for, some deliver late, and some deliver material that fails inspection or comes back from customers. Nobody had added this up per supplier, and {{ (s.counts.returns_blank / s.counts.returns) | pct(0) }} of the customer returns don’t even say which supplier the material came from. That is the “blindspot”.</p>
+<p>The data covers {{ s.period.start }} to {{ s.period.end }}: {{ "{:,}".format(s.counts.orders) }} purchase orders, their deliveries and payments, {{ s.counts.returns }} customer returns, a market price list and a supplier list. The assignment asked for five things, and each has a clear home:</p>
 <table>
-  <tr><th>Deliverable</th><th>Where</th><th>In one line</th></tr>
-  <tr><td>D1 · Cleaning + attribution</td><td><code>pipeline/load.py</code>, <code>prepare.py</code>, <code>attribute.py</code></td><td>Files identified by column signature, typed, joined with row-count assertions; {{ s.counts.returns_blank }} untraced returns attributed by a validated model.</td></tr>
-  <tr><td>D2 · Scorecard</td><td>Web app → Overview; <code>scorecard.csv</code> written by the pipeline</td><td>Four dimensions, evidence-weighted, 0–100, per supplier and per supplier × material.</td></tr>
-  <tr><td>D3 · ₹ impact</td><td>Web app → each supplier; <code>money.py</code></td><td>Problem-statement formula verbatim, then clearly separated additional losses.</td></tr>
-  <tr><td>D4 · Briefs</td><td><code>web/public/briefs/*.pdf</code></td><td>Five two-page A4 briefs: numbered asks, arithmetic, evidence POs, expected pushback.</td></tr>
-  <tr><td>D5 · Replace 3</td><td>Web app → Overview</td><td>{{ b.suppliers | join(", ") }}, with the best-scoring existing alternatives per material.</td></tr>
+  <tr><th>What was asked</th><th class="n">Marks</th><th>Where to find it</th></tr>
+  <tr><td><b>Money lost per supplier</b>, in rupees</td><td class="n">40%</td><td>Section 3; every supplier’s page in the app</td></tr>
+  <tr><td><b>Trace returns</b> that have no supplier recorded</td><td class="n">35%</td><td>Section 4; the app’s “Untraced returns” page</td></tr>
+  <tr><td><b>Negotiation briefs</b> for the worst suppliers</td><td class="n">25%</td><td>Section 7; the app’s “Briefs” page (printable PDFs)</td></tr>
+  <tr><td>Clean the data; build a <b>scorecard</b>; recommend <b>who to replace</b></td><td class="n">—</td><td>Sections 2, 5 and 7; the app’s Overview</td></tr>
 </table>
 
-<h2>2 · What the data actually contains</h2>
-<p>Before modelling, a pre-flight script (<code>python -m pipeline.preflight</code>) tested every assumption the arithmetic depends on. The findings that changed the design:</p>
+<h2><span class="no">2</span>How it works, in five steps</h2>
+<p>One command (<code>python -m pipeline.run</code>) takes the six raw files and produces everything: the scorecard, the rupee figures, the traced returns, the briefs, the website’s data and this document. The same steps run in the cloud when someone uploads their own files on the website.</p>
+<div class="flow">
+  <div class="step"><div class="k">STEP 1</div><div class="t">Read and clean</div><div class="d">Recognise each file by its columns, fix Indian number and date formats, and stop loudly if anything doesn’t add up.</div></div>
+  <div class="step"><div class="k">STEP 2</div><div class="t">Trace the returns</div><div class="d">Work out the most likely supplier for each return with no supplier recorded.</div></div>
+  <div class="step"><div class="k">STEP 3</div><div class="t">Count the money</div><div class="d">Put a rupee figure on every short delivery, return and rejection, order by order.</div></div>
+  <div class="step"><div class="k">STEP 4</div><div class="t">Score and rank</div><div class="d">Score each supplier out of 100 on four checks and rank all {{ s.counts.suppliers }}.</div></div>
+  <div class="step"><div class="k">STEP 5</div><div class="t">Write the briefs</div><div class="d">Turn the evidence into a two-page brief for each of the worst suppliers.</div></div>
+</div>
+
+<h3>What cleaning the data turned up</h3>
+<p>Before any scoring, every assumption the arithmetic depends on was tested. A few findings shaped the whole approach:</p>
 <ul>
-  <li><b>The answer key is in the data.</b> <code>supplier_master.is_underperformer</code> flags {{ v.flagged | join(", ") }}. It is removed at load time and kept sealed; no scoring or modelling code can reach it. It is opened once, after the ranking is final, to check the result (section 6).</li>
-  <li><b>Billing is on ordered quantity</b> on 100% of rows, so <code>invoice_amount_billed − quantity_received × unit_price_quoted</code> equals the value of material billed but not delivered. The rubric’s formula and short-delivery loss are the same number.</li>
-  <li><b>The market index cannot judge individual suppliers.</b> It covers {{ s.index_context | length }} of {{ s.counts.materials }} materials, and where it exists the whole panel pays well above it (SS Pipes is on a different scale entirely). Price premium is measured against what other suppliers on the panel charged for the same material in the same quarter; the index is quoted only as context.</li>
-  <li><b>Unit prices are noisy</b> — every material spans roughly ₹45,000–₹1,25,000/MT — so no supplier-level premium survives a significance test (section 4).</li>
-  <li><b>The PS’s suggested attribution rule does not fit the labelled data.</b> On returns whose supplier <i>is</i> recorded, that supplier is rarely the one whose batch of that material arrived most recently. Section 5 replaces it with a model and shows the difference.</li>
-  <li>Smaller issues, handled and logged: <code>days_late</code> in payments does not reconcile with its own dates (recomputed); the year in <code>po_id</code> disagrees with <code>po_date</code> on most rows (time grouping uses <code>po_date</code>); {{ s.counts.returns_blank }} of {{ s.counts.returns }} returns ({{ (s.counts.returns_blank / s.counts.returns) | pct(0) }}) are untraced, close to the stated 35%.</li>
+  <li><b>The answer was hidden in the data.</b> The supplier list has a column marking the bad suppliers. Using it would be cheating, so it is removed the moment the files are read and only opened at the very end, as a check (section 6).</li>
+  <li><b>Suppliers bill for what was ordered, not what arrived.</b> This is true on every order, so the gap between what was billed and what arrived is money paid for nothing.</li>
+  <li><b>The market price list can’t judge suppliers.</b> It covers only {{ s.index_context | length }} of the {{ s.counts.materials }} materials, and everyone pays well above it. Prices are therefore compared with what <i>other suppliers</i> charged for the same material in the same quarter.</li>
+  <li><b>Some fields contradict each other</b>, for example “days late” in payments doesn’t match its own dates. These are recalculated from the raw dates, and every fix is logged ({{ quality.findings | length }} findings in total).</li>
 </ul>
 
-<h2>3 · Financial quantification (40%)</h2>
-<p>Per purchase order, in rupees, then summed. Two tiers so a reviewer checking the stated formula finds exactly that number:</p>
+<h2><span class="no">3</span>Counting the money lost <span class="muted small">· 40% of marks</span></h2>
+<p>Money is counted per purchase order and then added up per supplier. The assignment’s own formula is used exactly as given:</p>
 <div class="box">
-  <b>A · Short delivery</b> = Σ ( invoice_amount_billed − quantity_received × unit_price_quoted )<br>
-  <b>B · Customer returns</b> = Σ quantity_returned × the supplier’s own median price for that material × P(supplier)<br>
-  <span class="muted">P = 1 for a recorded return; the model’s probability for an untraced one. Each returned tonne is allocated exactly once.</span><br>
-  <b>Headline (the rubric’s figure) = A + B.</b> &nbsp; Additional, shown separately: material rejected at our inspection (rejected MT × quoted price), return handling ({{ (cfg.RETURN_HANDLING_FACTOR*100)|round|int }}% of return value — an assumption), and price premium only if statistically established.
+  <b>Money lost = short delivery + customer returns</b><br>
+  <b>Short delivery</b> = what was billed − (what actually arrived × the agreed price)<br>
+  <b>Customer returns</b> = tonnes returned × the supplier’s usual price for that material<br>
+  <span class="muted small">For a return with no supplier recorded, the value is shared out by the model’s probabilities (section 4), so every returned tonne is counted exactly once.</span>
+</div>
+<p>Two further losses are real but outside that formula, so they are <b>shown separately</b> and never mixed into the assignment’s figure: <b>material rejected at Arora’s gate</b> (rejected tonnes × price) and the <b>cost of handling a return</b> (an assumed {{ (cfg.RETURN_HANDLING_FACTOR*100)|round|int }}% of its value).</p>
+
+<h3>Worked example: {{ worst.supplier_name }}</h3>
+<table>
+  <tr><th>Where the money went</th><th class="n">Amount</th><th>How it was worked out</th></tr>
+  <tr><td>Billed but never delivered</td><td class="n">{{ worst.short_loss | inr }}</td><td>{{ '%.1f'|format(worst.qty_short) }} tonnes short across {{ worst.orders }} orders</td></tr>
+  <tr><td>Returned by customers</td><td class="n">{{ worst.return_loss | inr }}</td><td>{{ worst.returns_recorded|int }} returns on record, plus about {{ worst.returns_inferred|round|int }} untraced returns that are most likely theirs</td></tr>
+  <tr class="total"><td>The assignment’s formula</td><td class="n">{{ worst.rubric_core_total | inr }}</td><td></td></tr>
+  <tr><td>Rejected at our gate</td><td class="n">{{ worst.reject_loss | inr }}</td><td>{{ '%.1f'|format(worst.qty_rejected) }} tonnes failed inspection</td></tr>
+  <tr><td>Handling the returns</td><td class="n">{{ worst.handling_loss | inr }}</td><td>{{ (cfg.RETURN_HANDLING_FACTOR*100)|round|int }}% of return value (assumed)</td></tr>
+  <tr class="total"><td>Total</td><td class="n">{{ worst.total_impact | inr }}</td><td>{{ '%.1f'|format(worst.impact_pct_of_spend) }}% of everything bought from them</td></tr>
+</table>
+
+<h3>The worst suppliers against everyone else</h3>
+<div class="bars">
+  <div class="bar"><span>Share of orders</span><div class="track"><div class="fill dark" style="width: {{ (b.share_of_spend*100)|round(1) }}%"></div></div><span class="v">{{ b.share_of_spend | pct(0) }}</span></div>
+  <div class="bar"><span>Share of money lost</span><div class="track"><div class="fill red" style="width: {{ (b.share_of_impact*100)|round(1) }}%"></div></div><span class="v">{{ b.share_of_impact | pct(0) }}</span></div>
 </div>
 <table>
-  <tr><th>Supplier</th><th class="n">Rank</th><th class="n">A · Short</th><th class="n">B · Returns</th><th class="n">A + B</th><th class="n">Rejected</th><th class="n">Handling</th><th class="n">Total</th></tr>
+  <tr><th>Supplier</th><th class="n">Rank</th><th class="n">Short delivery</th><th class="n">Returns</th><th class="n">Formula total</th><th class="n">Everything</th></tr>
   {% for r in suppliers[:6] %}
-  <tr class="{{ 'hl' if r.supplier_id in b.suppliers else '' }}"><td>{{ r.supplier_name }} <span class="muted">{{ r.supplier_id }}</span></td><td class="n">{{ r.rank }}</td><td class="n">{{ r.short_loss | inr }}</td><td class="n">{{ r.return_loss | inr }}</td><td class="n"><b>{{ r.rubric_core_total | inr }}</b></td><td class="n">{{ r.reject_loss | inr }}</td><td class="n">{{ r.handling_loss | inr }}</td><td class="n">{{ r.total_impact | inr }}</td></tr>
+  <tr class="{{ 'hl' if r.supplier_id in b.suppliers else '' }}"><td>{{ r.supplier_name }}</td><td class="n">{{ r.rank }} of {{ s.counts.suppliers }}</td><td class="n">{{ r.short_loss | lakh }}</td><td class="n">{{ r.return_loss | lakh }}</td><td class="n"><b>{{ r.rubric_core_total | lakh }}</b></td><td class="n">{{ r.total_impact | lakh }}</td></tr>
   {% endfor %}
-  <tr><td colspan="4"><b>All {{ s.counts.suppliers }} suppliers</b></td><td class="n"><b>{{ s.totals.rubric_core_total | inr }}</b></td><td class="n">{{ s.totals.reject_loss | inr }}</td><td class="n">{{ s.totals.handling_loss | inr }}</td><td class="n">{{ s.totals.total_impact | inr }}</td></tr>
+  <tr class="total"><td colspan="4">All {{ s.counts.suppliers }} suppliers</td><td class="n">{{ s.totals.rubric_core_total | lakh }}</td><td class="n">{{ s.totals.total_impact | lakh }}</td></tr>
 </table>
-<p><b>Sanity check against the problem statement.</b> The PS estimates ₹8–12L a year lost to the three underperformers on ₹70–85L monthly procurement. The supplied data transacts {{ s.counts.monthly_spend | lakh }} a month, so absolute figures are larger. Measured as a rate — what the bottom three leak <i>beyond</i> the rest of the panel’s rate on the same spend — they lose {{ b.excess_rate_of_spend | pct(2) }} of spend. Applied to the stated procurement that is <b>{{ b.scaled_to_ps_low | lakh }} – {{ b.scaled_to_ps_high | lakh }} a year</b>, inside the PS’s own range, reached independently.</p>
+<p><b>Does it match the assignment’s own estimate?</b> The assignment guesses the three bad suppliers cost <b>₹8–12 lakh a year</b> on ₹70–85 lakh of monthly buying. The data actually shows far more buying ({{ s.counts.monthly_spend | lakh }} a month), so the raw totals are bigger. Scaled back to the assignment’s buying level, the worst suppliers lose <b>{{ b.scaled_to_ps_low | lakh }} – {{ b.scaled_to_ps_high | lakh }} a year</b> more than an average supplier would, which is inside the assignment’s range. It was reached independently, not tuned to fit.</p>
 
-<h2>4 · Scorecard (D2)</h2>
+<h2><span class="no">4</span>Tracing returns with no supplier <span class="muted small">· 35% of marks</span></h2>
+<p>{{ s.counts.returns_blank }} customer returns say what came back, when and why, but not which supplier sent it. They can’t simply be ignored, because that would let the worst suppliers off the hook for a large share of their returns.</p>
+<h3>The idea</h3>
+<p>Think of it like narrowing down a suspect list. For each untraced return, the <b>suspects</b> are the suppliers who had delivered that material before the return date. For each suspect, the model looks at clues that were known on that date, never later:</p>
+<ul>{% for k, label in a.feature_labels.items() %}<li>{{ label }}</li>{% endfor %}</ul>
+<p>It learns how much each clue matters from the {{ a.metrics.n }} returns where the supplier <i>is</i> recorded, then gives every suspect a probability. The return’s value is shared out by those probabilities rather than pinned on one supplier.</p>
+
+<h3>Does it work? Tested with the answer hidden</h3>
+<p>The model was tested on the {{ a.metrics.n }} returns whose supplier is known: the answer was hidden, the model guessed, and the guesses were compared with the truth ({{ a.metrics.cv_folds }}-fold cross-validation). The key question for the money is <b>how much of the returned value ends up on the wrong supplier</b>. Lower is better:</p>
+{% set mx = ([a.metrics.misallocation] + (a.baselines.values() | map(attribute='misallocation') | list)) | max %}
+<div class="bars">
+  <div class="bar"><span><b>This model</b></span><div class="track"><div class="fill red" style="width: {{ (a.metrics.misallocation / mx * 100)|round(1) }}%"></div></div><span class="v">{{ a.metrics.misallocation | pct }}</span></div>
+  {% for k, x in a.baselines.items() %}
+  <div class="bar"><span>{{ x.label }}</span><div class="track"><div class="fill" style="width: {{ (x.misallocation / mx * 100)|round(1) }}%"></div></div><span class="v">{{ x.misallocation | pct }}</span></div>
+  {% endfor %}
+</div>
+<p>So the model gets about <b>{{ (1 - a.metrics.misallocation) | pct(0) }} of the value right</b>, while every simple rule, including the one the assignment suggested, gets roughly half wrong. That rule (“blame whoever delivered that material most recently”) turned out not to match the returns where the answer is known.</p>
+<div class="box note">
+  <b>Be honest about the limits.</b> For a single return the model often can’t be sure, because several suppliers could have sent it and nothing on the return tells them apart. It picks the right supplier first {{ a.metrics.top1 | pct(0) }} of the time and has it in its top three {{ a.metrics.top3 | pct(0) }} of the time. That is why traced returns count towards the totals as an estimate, but <b>a supplier is only ever asked to pay for returns that are on record</b>.
+</div>
+
+<h2><span class="no">5</span>The scorecard</h2>
+<p>Every supplier gets a score out of 100 (higher is better), built from four checks:</p>
 <table>
-  <tr><th>Dimension</th><th class="n">Weight</th><th>Measure</th></tr>
-  <tr><td>Short delivery</td><td class="n">{{ (s.weights.short_delivery*100)|round|int }}%</td><td>Quantity not delivered ÷ quantity ordered</td></tr>
-  <tr><td>Quality rejection</td><td class="n">{{ (s.weights.quality_rejection*100)|round|int }}%</td><td>(Rejected at our inspection + customer returns attributed) ÷ quantity received</td></tr>
-  <tr><td>Late delivery</td><td class="n">{{ (s.weights.late_delivery*100)|round|int }}%</td><td>Average days late per order. Nearly every supplier is a day or two late on most orders, so “% late” barely separates them; it is still reported.</td></tr>
-  <tr><td>Price premium</td><td class="n">{{ (s.weights.price_premium*100)|round|int }}%</td><td>Average premium over other suppliers, same material and quarter</td></tr>
+  <tr><th>Check</th><th class="n">Weight</th><th>What it measures</th></tr>
+  <tr><td>Short delivery</td><td class="n">{{ (s.weights.short_delivery*100)|round|int }}%</td><td>How much of what was ordered never arrived</td></tr>
+  <tr><td>Quality</td><td class="n">{{ (s.weights.quality_rejection*100)|round|int }}%</td><td>How much was rejected at our gate or returned by customers</td></tr>
+  <tr><td>Late delivery</td><td class="n">{{ (s.weights.late_delivery*100)|round|int }}%</td><td>How many days late orders arrive, on average</td></tr>
+  <tr><td>Price</td><td class="n">{{ (s.weights.price_premium*100)|round|int }}%</td><td>How much more they charge than other suppliers for the same material</td></tr>
 </table>
+<p>A few rules keep the scores fair:</p>
 <ul>
-  <li><b>Scored against the typical supplier, not the worst.</b> Each dimension scores 100 at or better than the panel median, falling to 0 at {{ cfg.ZERO_AT_UNITS|round|int }} robust standard deviations worse, where a unit is never smaller than a commercially material difference ({{ cfg.MATERIALITY.short_delivery }} pp short, {{ cfg.MATERIALITY.late_delivery }} days late, {{ cfg.MATERIALITY.quality_rejection }} pp quality, {{ cfg.MATERIALITY.price_premium }} pp price). Scaling to the panel’s best and worst would guarantee someone scores 0 even when nobody is bad; this does not (see section 9, “Tested on data with a known answer”).</li>
-  <li><b>Fair to small suppliers.</b> Each rate is shrunk toward the panel average by (n·rate + k·panel) ÷ (n + k), k = {{ s.config.shrinkage_k }} orders, so a handful of bad orders cannot top the worst list. Price premium is shrunk by its own noise (James–Stein): the spread between suppliers is no larger than order-to-order noise would produce, so the dimension carries little weight in practice — which is the honest outcome.</li>
-  <li><b>Price premium is never charged without evidence.</b> One-sided t-test per supplier, Benjamini–Hochberg correction across all {{ s.counts.suppliers }}. {% if s.premium.significant %}Established for {{ s.premium.significant | join(", ") }}.{% else %}None survives at {{ (s.premium.fdr*100)|round|int }}% FDR, so ₹0 is claimed. The briefs still ask for price alignment on materials where the supplier’s own median sits above the panel’s — a request backed by their orders, not a loss claim.{% endif %}</li>
-  <li><b>Per material, not just per supplier.</b> Every metric is also computed per supplier × material (shrunk toward that supplier’s own rate) and flagged where it is at least {{ cfg.CATEGORY_FLAG_MULTIPLE|round|int }}× the panel’s rate for that material. These drive the brief’s material-specific asks and the D5 alternatives.</li>
-  <li><b>Relationship length is not an input.</b> No scoring code reads <code>years_of_relationship</code>; a test shuffles it and asserts every score is unchanged.</li>
-  <li><b>Robust to the weights.</b> The bottom three are identical under all {{ s.stability.scenarios | length }} weightings tested (base, equal, money-heavy, service-heavy, price-heavy).</li>
+  <li><b>Compared with a typical supplier, not the worst.</b> Matching the typical supplier earns 100; only being clearly and meaningfully worse loses points. If nobody is bad, nobody is flagged. This was tested on data where every supplier was fine, and nobody was flagged.</li>
+  <li><b>Small suppliers aren’t punished for bad luck.</b> A supplier with only a handful of orders is pulled towards the average until there’s enough evidence, so two bad orders can’t put them at the bottom.</li>
+  <li><b>Price needs proof.</b> Prices vary a lot from order to order, so a supplier is only charged for high prices if a statistical test says it isn’t chance. {% if s.premium.significant %}That holds for {{ s.premium.significant | join(', ') }}.{% else %}No supplier passed, so ₹0 is claimed for price. The briefs still ask for a price match where a supplier charges above the others.{% endif %}</li>
+  <li><b>Relationship length is ignored.</b> How long someone has supplied Arora says nothing about how well they deliver, so it isn’t used. A test proves changing it changes no score.</li>
+  <li><b>The weights don’t decide the answer.</b> The same suppliers come out at the bottom under all {{ s.stability.scenarios | length }} different weightings tried, including equal weights.</li>
 </ul>
 
-<h2>5 · Missing-attribution inference (35%)</h2>
-<p>A return records material, date, quantity and reason — but no PO or batch — so it cannot be joined to a delivery. It is treated as a ranking problem: <i>of all suppliers who had delivered before this return, how likely is each to be its source?</i></p>
-<ol>
-  <li><b>Candidates.</b> Every supplier with a delivery on or before the return date.</li>
-  <li><b>Features</b>, each computed only from deliveries dated on or before the return (a test adds catastrophic future deliveries and asserts no feature changes):
-    <ul>{% for k, label in a.feature_labels.items() %}<li>{{ label }} <span class="muted">(weight {{ '%+.2f'|format(a.coefficients[k]) }})</span></li>{% endfor %}</ul>
-    The return-history feature uses labels, so under cross-validation it is rebuilt inside each fold from the training returns only.</li>
-  <li><b>Model.</b> Logistic regression on (return, supplier) pairs, probabilities normalised per return, then blended with plain exposure (each supplier’s recent share of that material) at the weight held-out log loss prefers — {{ '%.2f'|format(a.metrics.blend_alpha) }} on the model for this data. It therefore cannot do worse than that simple rule, and falls back to it when the data has no learnable signal. {{ a.feature_labels | length + 1 }} parameters; fits in under a second; refits automatically on any new dataset.</li>
-  <li><b>Validation.</b> {{ a.metrics.cv_folds }}-fold cross-validation grouped by return, on the {{ a.metrics.n }} returns whose supplier is recorded: hide the answer, predict, compare.</li>
-</ol>
-<table>
-  <tr><th>Method</th><th class="n">Value misallocated ↓</th><th class="n">Right supplier in top 3 ↑</th><th class="n">Ranked first ↑</th></tr>
-  <tr class="hl"><td><b>Our model</b></td><td class="n"><b>{{ a.metrics.misallocation | pct }}</b></td><td class="n"><b>{{ a.metrics.top3 | pct }}</b></td><td class="n"><b>{{ a.metrics.top1 | pct }}</b></td></tr>
-  {% for k, x in a.baselines.items() %}<tr><td>{{ x.label }}</td><td class="n">{{ x.misallocation | pct }}</td><td class="n">{{ x.top3 | pct }}</td><td class="n">{{ x.top1 | pct }}</td></tr>{% endfor %}
-</table>
-<p><b>Why misallocation is the headline metric.</b> The rupee totals need each supplier’s <i>share</i> of return value to be right, not every individual return. Misallocation measures exactly that: the fraction of held-out return value that lands on the wrong supplier once summed per supplier. The model gets {{ (1 - a.metrics.misallocation) | pct(0) }} right; every rule-based alternative, including the PS’s, gets about half.</p>
-<p><b>Honest limits.</b> Top-1 accuracy is capped by the data: several suppliers could have supplied any given return, and nothing on the return distinguishes them. The model’s confidence reflects this and is calibrated ({% for c in a.calibration %}{{ c.bin }}: predicted {{ c.predicted | pct(0) }}, observed {{ c.observed | pct(0) }}{{ '; ' if not loop.last }}{% endfor %}). That is why inferred returns are split by probability in the totals, shown as an estimate in the briefs, and <b>never demanded as a credit</b> — only recorded returns are.</p>
-<p>With fewer than {{ cfg.MIN_LABELLED_FOR_TRAINING }} labelled returns the pipeline does not train; it falls back to the most-recent-batch rule and says so in every output (tested).</p>
-
-<h2>6 · Blind validation</h2>
+<h2><span class="no">6</span>The double-check</h2>
 {% if v.available and v.flagged %}
-<p>With the ranking frozen, the sealed <code>is_underperformer</code> column was opened for the first time. It flags {{ v.flagged | join(", ") }}. Our bottom three, computed without it: <b>{{ v.our_bottom | join(", ") }}</b> — ranks {% for k, r in v.flagged_ranks.items() %}{{ k }} #{{ r }}{{ ', ' if not loop.last }}{% endfor %} of {{ v.n_suppliers }}, {{ '%.0f'|format(v.gap_to_next) }} score points clear of the next supplier. The column was a check on the method, never an input to it.</p>
+<p>With the ranking finished, the hidden “bad supplier” column was opened for the first time. It marks {{ v.flagged | join(', ') }}. The analysis, which never saw it, had placed exactly these suppliers at the bottom: ranks {% for k, r in v.flagged_ranks.items() %}{{ k }} #{{ r }}{{ ', ' if not loop.last }}{% endfor %} of {{ v.n_suppliers }}, <b>{{ '%.0f'|format(v.gap_to_next) }} points clear</b> of the next supplier. That is a large, unambiguous gap, not a near miss.</p>
 {% elif v.available %}
-<p>The sealed <code>is_underperformer</code> column flags no supplier in this dataset, so there is nothing to validate against; the ranking stands on the evidence alone.</p>
+<p>The hidden answer column marks no supplier in this data, so there is nothing to check against; the ranking stands on the evidence alone.</p>
 {% else %}
-<p>This dataset carries no answer-key column, so no blind check is possible; the ranking stands on the evidence alone.</p>
+<p>This data has no hidden answer column, so the ranking stands on the evidence alone.</p>
 {% endif %}
 
-<h2>7 · Negotiation briefs (25%) and recommendation</h2>
-<p>Briefs are generated for the bottom {{ briefs | length }} by score. Each is two A4 pages: page one carries the rupee figure with its arithmetic, three or four numbered asks with the evidence for each, likely counter-arguments, and a walk-away position; page two lists the purchase orders to put on the table and a per-material breakdown. Rules: every ask cites a figure the supplier can check against their own invoice or our GRN; only recorded returns are claimed; the price ask quotes the panel median for the material. Example ({{ briefs[0].supplier_id }}): <i>“{{ briefs[0].asks[0].ask }}”</i></p>
+<h2><span class="no">7</span>Negotiation briefs and who to replace <span class="muted small">· 25% of marks</span></h2>
+<p>Each of the {{ briefs | length }} worst suppliers gets a two-page A4 brief a buyer can take into a meeting:</p>
+<ul>
+  <li><b>Page one:</b> the rupee figure and how it was worked out, three or four numbered asks with the evidence for each, what the supplier is likely to argue back, and when to walk away.</li>
+  <li><b>Page two:</b> the purchase orders to put on the table, and a breakdown by material.</li>
+</ul>
+<p>Every ask quotes a figure the supplier can check against their own invoices. For example, to {{ briefs[0].supplier_name }}:</p>
+<div class="box"><i>“{{ briefs[0].asks[0].ask }}”</i><br><span class="muted small">Evidence: {{ briefs[0].asks[0].evidence }}</span></div>
+
+<h3>Recommendation: replace these suppliers</h3>
 <table>
-  <tr><th>Replace</th><th class="n">Cost to us</th><th class="n">Avoidable by switching</th><th>Largest materials → best existing alternatives</th></tr>
+  <tr><th>Replace</th><th>Main problems</th><th class="n">Cost</th><th>Who can take over their biggest materials</th></tr>
   {% for r in s.replacements %}
-  <tr><td>{{ r.supplier_name }} <span class="muted">{{ r.supplier_id }}</span></td><td class="n">{{ r.total_impact | lakh }}</td><td class="n">{{ r.avoidable_total | lakh }}</td>
-    <td>{% for m in r.materials[:3] %}{{ m.material }} → {{ m.alternatives | map(attribute='supplier_name') | join(', ') }}{{ '; ' if not loop.last }}{% endfor %}</td></tr>
+  <tr><td><b>{{ r.supplier_name }}</b></td><td>{% for d in r.drivers %}<span class="pill">{{ DIM.get(d, d) }}</span>{% endfor %}</td><td class="n">{{ r.total_impact | lakh }}</td>
+    <td class="small">{% for m in r.materials[:3] %}{{ m.material }} → {{ m.alternatives[:2] | map(attribute='supplier_name') | join(', ') }}{{ '; ' if not loop.last }}{% endfor %}</td></tr>
   {% endfor %}
 </table>
+<p class="small muted">The alternatives are existing suppliers who already deliver that material well, so switching doesn’t mean finding someone new.</p>
 
-<h2>8 · Assumptions and limitations</h2>
+<h2><span class="no">8</span>Assumptions and limitations</h2>
 <ul>
-  <li>Return value uses the supplier’s own median price for the material returned; handling cost ({{ (cfg.RETURN_HANDLING_FACTOR*100)|round|int }}%) is an assumption and sits outside the headline.</li>
-  <li>The late-delivery penalty in the briefs ({{ (cfg.LATE_PENALTY_PER_DAY*100)|round(1) }}%/day, capped at {{ (cfg.LATE_PENALTY_CAP*100)|round|int }}%) is a negotiating position; it is never added to any loss total.</li>
-  <li>Arora’s own late payment (recomputed from invoice date + agreed days) is surfaced in each brief as the supplier’s likely counter-argument, not scored.</li>
-  <li>Attribution assumes the returns with a supplier recorded are typical of those without. When that fails it cannot be detected from the data: in a test where clerks recorded problem suppliers’ returns twice as often as others’, the model leaned towards the problem suppliers and did worse than the simple rules on the untraced returns. This is why only recorded returns are ever claimed in a brief. The lasting fix is operational: record a batch or lot number on every return.</li>
-  <li>Every analysis — this one, and each upload — refits the model and recomputes every figure from that data alone; nothing carries over between datasets, so one business’s data never influences another’s results.</li>
+  <li><b>Value of a return:</b> the supplier’s usual price for that material. <b>Handling a return:</b> assumed to cost {{ (cfg.RETURN_HANDLING_FACTOR*100)|round|int }}% of its value, and kept outside the assignment’s formula.</li>
+  <li><b>Late-delivery penalty</b> in the briefs ({{ (cfg.LATE_PENALTY_PER_DAY*100)|round(1) }}% a day, capped at {{ (cfg.LATE_PENALTY_CAP*100)|round|int }}%) is a negotiating position, not a loss, and is never added to any total.</li>
+  <li><b>Arora pays late too.</b> This is worked out from invoice dates and shown in each brief as the supplier’s likely comeback. It doesn’t change their score.</li>
+  <li><b>Untraced returns are assumed to be like the traced ones.</b> If clerks tended to record some suppliers’ returns more than others’, the model would lean the wrong way, and the data can’t reveal that. This is the main reason only recorded returns are ever claimed. The lasting fix is simple: write a batch number on every return.</li>
+  <li><b>Nothing is tuned to this dataset.</b> Suppliers, materials and thresholds are discovered from the data, and every analysis, including each upload, is worked out from its own files alone.</li>
 </ul>
 
-<h2>9 · The product, and how it was checked</h2>
+<h2><span class="no">9</span>How it was checked</h2>
 <div class="two">
   <div>
-    <p><b>Use it.</b> The live app opens on these results. Its Upload page takes a business’s own six files — any file names, Excel or Tally exports as they are — and runs this same analysis on them in the cloud, with the scorecard, rupee figures and briefs appearing in the same pages.</p>
-    <p><b>One command.</b> <code>python -m pipeline.run</code> turns the six CSVs into everything here — scorecard, attribution, the web app’s data, five PDF briefs and this document. Nothing is tuned to this dataset: files are recognised by their columns, suppliers, materials and thresholds are discovered, and every constant sits in <code>config.py</code> with its reasoning.</p>
-    <p><b>Fails loudly.</b> Missing files, mixed units, unreadable amounts or dates, and joins that would duplicate rows stop the run with a specific message. Everything else the pipeline notices ({{ quality.findings | length }} findings on this data) is logged with the action taken.</p>
+    <p><b>An independent recount.</b> A separate script recalculates every headline figure straight from the raw files, without using any of the analysis code, and confirms the website shows the same numbers.</p>
+    <p><b>Test data with a known answer.</b> Nine made-up datasets with planted bad suppliers: a 120-supplier panel, suppliers who turn bad only in the final year, a small but genuinely bad supplier, messy Indian spreadsheet exports, and one where nobody is bad. In all nine, the right suppliers were found, for the right reason, with no false alarms.</p>
   </div>
   <div>
-    <p><b>Checked independently.</b> A separate audit recomputes every headline figure from the raw CSVs without using the pipeline’s code and confirms the app shows the same numbers (<code>python -m evaluation.audit</code>).</p>
-    <p><b>Tested on data with a known answer.</b> Nine generated datasets with planted problem suppliers and the true source of every return — a 120-supplier panel, suppliers that turn bad only in the final year, a small but genuinely bad supplier, Indian spreadsheet exports, and a panel where nobody is bad. In every one the planted suppliers were found, the right weakness named, the rupee figures exact, and no false alarms raised (<code>evaluation/REPORT.md</code>).</p>
-    <p><b>Automated tests</b> check the rupee formulas, that the answer-key column never reaches the scoring, that relationship length has no effect, the upload service, and — in a real browser — every page of the app.</p>
+    <p><b>Automatic tests</b> check the money formulas, that the hidden answer never reaches the scoring, that relationship length has no effect, the upload service, and every page of the website in a real browser.</p>
+    <p><b>Try it.</b> The live website opens on these results. On its Upload page, anyone can add their own six files (any file names, Excel or Tally exports as they are) and get the same analysis for their suppliers.</p>
   </div>
 </div>
 </body>

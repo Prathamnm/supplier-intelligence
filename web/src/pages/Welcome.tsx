@@ -2,17 +2,14 @@ import { useEffect } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import logo from '../assets/mccia-logo-dark.png'
 import { BrandMark } from '../components/BrandMark'
-import { Stat } from '../components/ui'
 import { wakeApi } from '../lib/api'
 import { useDataset } from '../lib/dataset'
-import { inrShort } from '../lib/format'
 
 const REPO_URL = 'https://github.com/Prathamnm/supplier-intelligence'
 
 export default function Welcome() {
   const { search } = useLocation()
-  const { summary, briefs } = useDataset()
-  const { counts, totals } = summary
+  const { approachUrl } = useDataset()
 
   // The upload API sleeps when idle; start waking it while the visitor reads this page.
   useEffect(() => {
@@ -59,15 +56,19 @@ export default function Welcome() {
             >
               Upload your own data
             </Link>
+            <a
+              href={approachUrl}
+              download="Supplier-Blindspot-Approach.pdf"
+              className="inline-flex items-center gap-2 rounded-lg border border-line px-5 py-2.5 text-sm text-ink-2 transition-colors hover:border-line-strong hover:text-ink"
+            >
+              <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+                <path d="M8 2v8m0 0L4.5 6.5M8 10l3.5-3.5M2.5 13.5h11" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Download the approach (PDF)
+            </a>
           </div>
         </section>
 
-        <section className="mt-14 grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="What's inside">
-          <Stat label="Scorecard" value={`${counts.suppliers} suppliers`} sub="Ranked on short and late deliveries, quality and price" />
-          <Stat label="Money lost" value={inrShort(totals.total_impact)} sub="From short deliveries, returns and rejected material" />
-          <Stat label="Untraced returns" value={`${counts.returns_blank} of ${counts.returns}`} sub="Returns with no supplier, matched to the likely one" />
-          <Stat label="Negotiation briefs" value={`${briefs.length} briefs`} sub="One page each, ready to print" />
-        </section>
       </main>
 
       <footer className="border-t border-line">
