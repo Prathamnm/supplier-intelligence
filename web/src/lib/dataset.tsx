@@ -2,8 +2,8 @@
 // analysis the user uploaded. Both have exactly the same shape -- the API
 // serves the same JSON files the build bundles -- so pages never branch
 // on where their data came from.
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { apiUrl, loadAnalysis, loadAnalysisDetail, type AnalysisMeta } from './api'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { APPROACH_PAGE, apiUrl, cachePages, loadAnalysis, loadAnalysisDetail, type AnalysisMeta } from './api'
 import * as bundled from './data'
 import type { Brief, QualityReport, ReturnRow, Summary, Supplier, SupplierDetails } from './types'
 
@@ -73,42 +73,62 @@ const Ctx = createContext<DatasetState | null>(null)
 export function DatasetProvider({ children }: { children: ReactNode }) {
   const [dataset, setDataset] = useState<Dataset>(BUNDLED)
   const [notice, setNotice] = useState<string | null>(null)
+  // blob: URLs of the current upload's printable pages, released when replaced.
+  const pages = useRef<Map<string, string>>(new Map())
+  const releasePages = useCallback(() => {
+    for (const url of pages.current.values()) URL.revokeObjectURL(url)
+    pages.current = new Map()
+  }, [])
 
   const activate = useCallback(async (id: string) => {
     const a = await loadAnalysis(id)
-    setDataset(build({
+    // The server prints each PDF the first time it is asked for, so every brief
+    // offers one; the printable pages are copied into the tab straight away.
+    const briefs = a.briefs.map((b) => ({
+      ...b,
+      files: { ...b.files, pdf: b.files.pdf ?? b.files.html?.replace(/\.html$/, '.pdf') },
+    }))
+    const htmlFiles = briefs.flatMap((b) => (b.files.html ? [b.files.html] : []))
+    const cached = await cachePages(id, [...htmlFiles, APPROACH_PAGE])
+    releasePages()
+    pages.current = cached
+    const ds = build({
       key: id,
       source: a.meta.source,
       label: `Your upload (${a.meta.files.length} files)`,
       meta: a.meta,
       summary: a.summary,
       suppliers: a.suppliers,
-      briefs: a.briefs,
+      briefs,
       quality: a.quality,
-      briefUrl: (file) => apiUrl(`/analyses/${id}/briefs/${encodeURIComponent(file)}`),
-      approachUrl: apiUrl(`/analyses/${id}/approach`),
+      briefUrl: (file) => cached.get(file) ?? apiUrl(`/analyses/${id}/briefs/${encodeURIComponent(file)}`),
+      approachUrl: apiUrl(`/analyses/${id}/approach.pdf`),
       fetchDetail: () =>
         loadAnalysisDetail(id).then(([details, returns]) => ({
           details: details as SupplierDetails,
           returns: returns as ReturnRow[],
         })),
-    }))
+    })
+    // Fetch the per-supplier detail now too, while the server certainly has it.
+    ds.loadDetail().catch(() => undefined)
+    setDataset(ds)
     setNotice(null)
     try {
       sessionStorage.setItem(STORAGE_KEY, id)
     } catch {
       /* storage unavailable: the analysis still shows, it just won't survive a reload */
     }
-  }, [])
+  }, [releasePages])
 
   const reset = useCallback(() => {
+    releasePages()
     setDataset(BUNDLED)
     try {
       sessionStorage.removeItem(STORAGE_KEY)
     } catch {
       /* ignore */
     }
-  }, [])
+  }, [releasePages])
 
   // Open an analysis from a shared link (#/overview?analysis=<id>), or restore the
   // one from before a page reload -- if the server still has it.

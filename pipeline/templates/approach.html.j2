@@ -66,9 +66,15 @@
 
   .pill { display: inline-block; font-size: 7.8pt; padding: 0 5pt; border-radius: 8pt; background: #fbe6e6; color: #a83232; margin: 0 2pt 2pt 0; white-space: nowrap; }
   .page-break { break-before: page; }
+  /* On screen only: a bar to print or save as PDF. Never part of the printed page. */
+  .printbar { position: sticky; top: 0; z-index: 10; display: flex; justify-content: center; align-items: center; gap: 12px; padding: 10px 16px; background: #16181d; color: #e9ebef; font: 13px/1.4 "Segoe UI", system-ui, Arial, sans-serif; }
+  .printbar button { font: inherit; font-weight: 600; padding: 7px 16px; border: 0; border-radius: 6px; background: #fff; color: #16181d; cursor: pointer; }
+  .printbar span { color: #a4a9b4; }
+  @media print { .printbar { display: none; } }
 </style>
 </head>
 <body>
+<div class="printbar"><button type="button" onclick="window.print()">Print / Save as PDF</button><span>In the print window, choose “Save as PDF” to download it.</span></div>
 {% set a = s.attribution %}{% set b = s.bottom %}{% set v = s.validation %}
 {% set DIM = {'short_delivery': 'Short deliveries', 'late_delivery': 'Late deliveries', 'quality_rejection': 'Poor quality', 'price_premium': 'High prices'} %}
 {% set bottom_rows = suppliers | selectattr('supplier_id', 'in', b.suppliers) | list %}

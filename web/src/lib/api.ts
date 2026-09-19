@@ -117,5 +117,31 @@ export async function loadAnalysis(id: string): Promise<AnalysisData> {
   return { meta, summary, suppliers, briefs, quality }
 }
 
+/**
+ * Download an analysis's printable pages (briefs and the approach document)
+ * into the browser as blob: URLs, keyed by file name. The hosted API forgets
+ * uploads when it restarts; a copy held here keeps "Open to print" working
+ * for as long as the tab is open. Pages that fail to load are simply left out.
+ */
+export async function cachePages(id: string, files: string[]): Promise<Map<string, string>> {
+  const pages = new Map<string, string>()
+  await Promise.all(
+    files.map(async (file) => {
+      const path = file === APPROACH_PAGE ? `/analyses/${id}/approach` : `/analyses/${id}/briefs/${encodeURIComponent(file)}`
+      try {
+        const res = await fetch(apiUrl(path), { signal: AbortSignal.timeout(30_000) })
+        if (!res.ok) return
+        const html = await res.text()
+        pages.set(file, URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' })))
+      } catch {
+        /* keep the server link for this one */
+      }
+    }),
+  )
+  return pages
+}
+
+export const APPROACH_PAGE = 'approach.html'
+
 export const loadAnalysisDetail = (id: string) =>
   Promise.all([data(id, 'supplier_details.json'), data(id, 'returns.json')])

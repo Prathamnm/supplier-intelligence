@@ -10,3 +10,5 @@ rapidfuzz==3.14.6
 fastapi==0.128.0
 uvicorn==0.40.0
 python-multipart==0.0.26
+# Prints briefs to PDF on request; render.yaml downloads its Chromium at build time.
+playwright==1.63.0

@@ -31,6 +31,7 @@ web/.env.*
 
 # --- Hosting CLIs and local tool settings
 .vercel/
+.playwright/
 .claude/
 
 # --- Editors and OS

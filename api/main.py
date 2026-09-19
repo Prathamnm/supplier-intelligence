@@ -28,8 +28,9 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
+from api.pdf import html_to_pdf
 from api.settings import Settings
 from api.store import AnalysisStore
 from pipeline import schema as file_schema
@@ -40,6 +41,40 @@ DATA_FILES = {"summary.json", "suppliers.json", "supplier_details.json",
               "returns.json", "briefs.json", "quality.json"}
 BRIEF_FILE = re.compile(r"^[A-Za-z0-9_-]{1,64}\.(html|pdf)$")
 CHUNK = 1 << 20
+EXPIRED = "No such analysis. It may have expired; upload the files again."
+SITE_URL = "https://supplier-intelligence-iota.vercel.app"
+
+
+_PAGE_CSS = (
+    "body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0c0d0f;color:#f2f3f5;"
+    "font:15px/1.6 'Segoe UI',system-ui,Arial,sans-serif}"
+    "main{max-width:520px;padding:24px}h1{font-size:20px;margin:0 0 8px}p{color:#b4b8c2;margin:0 0 16px}"
+    "a{display:inline-block;padding:8px 14px;border-radius:8px;background:#f2f3f5;color:#0c0d0f;"
+    "text-decoration:none;font-weight:600}"
+)
+
+
+def _page(title: str, body: str, status: int) -> HTMLResponse:
+    """A small readable page for links opened in a browser tab (not JSON)."""
+    return HTMLResponse(status_code=status, content=(
+        '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        f"<title>{title}</title><style>{_PAGE_CSS}</style></head>"
+        f"<body><main><h1>{title}</h1>{body}</main></body></html>"))
+
+
+def _expired_page() -> HTMLResponse:
+    return _page("This analysis is no longer on the server",
+                 "<p>Uploaded analyses are kept for a few hours, and are cleared when the server restarts. "
+                 "Upload the files again to get the scorecard and briefs back.</p>"
+                 f'<a href="{SITE_URL}/#/upload">Upload again</a>', 404)
+
+
+def _pdf_unavailable(html_name: str) -> HTMLResponse:
+    return _page("The PDF couldn't be made just now",
+                 "<p>The printable version has everything the PDF has. Open it and use "
+                 "<b>Print / Save as PDF</b> at the top to download it.</p>"
+                 f'<a href="{html_name}">Open the printable version</a>', 503)
 
 # The heavy half of the app, imported once, off the request path.
 _HEAVY = ("pipeline.run", "pipeline.quality")
@@ -106,8 +141,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def _folder(analysis_id: str) -> Path:
         path = store.path(analysis_id)
         if path is None:
-            raise HTTPException(404, "No such analysis. It may have expired; upload the files again.")
+            raise HTTPException(404, EXPIRED)
         return path
+
+    def _document(html: Path, want_pdf: bool) -> FileResponse | HTMLResponse:
+        """Serve a brief or the approach document; print the PDF on first request."""
+        if not html.exists():
+            raise HTTPException(404, "Not available for this analysis.")
+        if not want_pdf:
+            return FileResponse(html, media_type="text/html")
+        pdf = html.with_suffix(".pdf")
+        if pdf.exists() or html_to_pdf(html, pdf):
+            return FileResponse(pdf, media_type="application/pdf")
+        return _pdf_unavailable(html.name)
 
     # ---------------------------------------------------------------- routes
 
@@ -169,21 +215,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(404, "Not available for this analysis.")
         return FileResponse(file, media_type="application/json")
 
-    @app.get("/api/analyses/{analysis_id}/briefs/{file}")
-    def get_brief(analysis_id: str, file: str) -> FileResponse:
+    @app.get("/api/analyses/{analysis_id}/briefs/{file}", response_model=None)
+    def get_brief(analysis_id: str, file: str) -> FileResponse | HTMLResponse:
         if not BRIEF_FILE.match(file):
             raise HTTPException(404, "Unknown brief.")
-        path = _folder(analysis_id) / "out" / "briefs" / file
-        if not path.exists():
-            raise HTTPException(404, "Unknown brief.")
-        return FileResponse(path, media_type="application/pdf" if file.endswith(".pdf") else "text/html")
+        folder = store.path(analysis_id)
+        if folder is None:
+            return _expired_page()
+        html = folder / "out" / "briefs" / f"{Path(file).stem}.html"
+        return _document(html, want_pdf=file.endswith(".pdf"))
 
-    @app.get("/api/analyses/{analysis_id}/approach")
-    def get_approach(analysis_id: str) -> FileResponse:
-        path = _folder(analysis_id) / "out" / "approach.html"
-        if not path.exists():
-            raise HTTPException(404, "Not available for this analysis.")
-        return FileResponse(path, media_type="text/html")
+    @app.get("/api/analyses/{analysis_id}/approach", response_model=None)
+    def get_approach(analysis_id: str) -> FileResponse | HTMLResponse:
+        folder = store.path(analysis_id)
+        return _expired_page() if folder is None else _document(folder / "out" / "approach.html", False)
+
+    @app.get("/api/analyses/{analysis_id}/approach.pdf", response_model=None)
+    def get_approach_pdf(analysis_id: str) -> FileResponse | HTMLResponse:
+        folder = store.path(analysis_id)
+        return _expired_page() if folder is None else _document(folder / "out" / "approach.html", True)
 
     return app
 

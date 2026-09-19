@@ -59,6 +59,8 @@ export default function Welcome() {
             <a
               href={approachUrl}
               download="Supplier-Blindspot-Approach.pdf"
+              target="_blank"
+              rel="noreferrer"
               className="inline-flex items-center gap-2 rounded-lg border border-line px-5 py-2.5 text-sm text-ink-2 transition-colors hover:border-line-strong hover:text-ink"
             >
               <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>

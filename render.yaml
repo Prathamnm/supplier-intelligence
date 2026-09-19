@@ -6,11 +6,15 @@ services:
     name: supplier-intelligence-api
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    # Chromium for printing briefs to PDF. It is kept inside the project folder
+    # so it is still there when the service runs (the build cache is not).
+    buildCommand: pip install -r requirements.txt && python -m playwright install --only-shell chromium
     startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.1
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: /opt/render/project/src/.playwright
       - key: SI_ALLOWED_ORIGINS
         value: https://supplier-intelligence-iota.vercel.app,http://localhost:5173,http://localhost:4173

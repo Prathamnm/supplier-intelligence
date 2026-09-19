@@ -94,3 +94,64 @@ def test_cannot_escape_the_analysis_folder(client, tmp_path):
     assert client.get(f"{base}/data/..%2Fmeta.json").status_code == 404
     assert client.get(f"{base}/briefs/..%2F..%2Fmeta.json").status_code == 404
     assert client.get(f"{base}/data/truth.json").status_code == 404
+
+
+def test_expired_analysis_pages_are_readable_not_json(client):
+    for url in ("/briefs/VS03.html", "/briefs/VS03.pdf", "/approach", "/approach.pdf"):
+        r = client.get("/api/analyses/" + "0" * 32 + url)
+        assert r.status_code == 404
+        assert r.headers["content-type"].startswith("text/html")
+        assert "no longer on the server" in r.text
+
+
+def test_brief_pdf_is_printed_on_first_request_then_kept(client, tmp_path, monkeypatch):
+    meta = _upload(client, make_synthetic(tmp_path / "raw")).json()
+    base = f"/api/analyses/{meta['id']}"
+    brief = client.get(f"{base}/data/briefs.json").json()[0]
+    assert "pdf" not in brief["files"]          # the upload itself makes no PDFs
+    calls = []
+
+    def fake_print(html, pdf):
+        calls.append(html.name)
+        pdf.write_bytes(b"%PDF-1.7 fake")
+        return True
+
+    monkeypatch.setattr("api.main.html_to_pdf", fake_print)
+    pdf_name = brief["files"]["html"].replace(".html", ".pdf")
+    for _ in range(2):
+        r = client.get(f"{base}/briefs/{pdf_name}")
+        assert r.status_code == 200 and r.headers["content-type"] == "application/pdf"
+    assert client.get(f"{base}/approach.pdf").headers["content-type"] == "application/pdf"
+    assert calls == [brief["files"]["html"], "approach.html"]   # printed once each, then served
+
+
+def test_pdf_failure_points_to_the_printable_page(client, tmp_path, monkeypatch):
+    meta = _upload(client, make_synthetic(tmp_path / "raw")).json()
+    monkeypatch.setattr("api.main.html_to_pdf", lambda html, pdf: False)
+    brief = client.get(f"/api/analyses/{meta['id']}/data/briefs.json").json()[0]
+    r = client.get(f"/api/analyses/{meta['id']}/briefs/{brief['files']['html'].replace('.html', '.pdf')}")
+    assert r.status_code == 503 and f'href="{brief["files"]["html"]}"' in r.text
+
+
+def test_printable_pages_hide_the_print_bar_when_printed(client, tmp_path):
+    meta = _upload(client, make_synthetic(tmp_path / "raw")).json()
+    brief = client.get(f"/api/analyses/{meta['id']}/data/briefs.json").json()[0]
+    page = client.get(f"/api/analyses/{meta['id']}/briefs/{brief['files']['html']}").text
+    assert "window.print()" in page and "@media print { .printbar { display: none; } }" in page
+
+
+def test_real_pdf_print(tmp_path):
+    from api.pdf import html_to_pdf
+    from pipeline import brief
+
+    if brief._browser() is None:
+        try:
+            import playwright  # noqa: F401
+        except ImportError:
+            pytest.skip("no browser available to print with")
+    html = tmp_path / "page.html"
+    html.write_text("<!doctype html><style>@page{size:A4}</style><h1>Brief</h1>", encoding="utf-8")
+    ok = html_to_pdf(html, tmp_path / "page.pdf")
+    if not ok:
+        pytest.skip("browser present but could not print here")
+    assert (tmp_path / "page.pdf").read_bytes().startswith(b"%PDF")
