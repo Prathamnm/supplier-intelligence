@@ -14,7 +14,7 @@ export interface Detail {
 
 export interface Dataset {
   key: string
-  source: 'bundled' | 'upload' | 'sample'
+  source: 'bundled' | 'upload'
   label: string
   meta?: AnalysisMeta
   summary: Summary
@@ -79,7 +79,7 @@ export function DatasetProvider({ children }: { children: ReactNode }) {
     setDataset(build({
       key: id,
       source: a.meta.source,
-      label: a.meta.source === 'sample' ? `Sample: ${a.meta.sample}` : `Your upload (${a.meta.files.length} files)`,
+      label: `Your upload (${a.meta.files.length} files)`,
       meta: a.meta,
       summary: a.summary,
       suppliers: a.suppliers,

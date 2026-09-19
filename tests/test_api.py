@@ -94,12 +94,3 @@ def test_cannot_escape_the_analysis_folder(client, tmp_path):
     assert client.get(f"{base}/data/..%2Fmeta.json").status_code == 404
     assert client.get(f"{base}/briefs/..%2F..%2Fmeta.json").status_code == 404
     assert client.get(f"{base}/data/truth.json").status_code == 404
-
-
-def test_sample_dataset_can_be_analysed(client):
-    names = [s["name"] for s in client.get("/api/samples").json()]
-    assert "B_failure_modes" in names
-    r = client.post("/api/samples/B_failure_modes")
-    assert r.status_code == 201, r.text
-    assert r.json()["source"] == "sample"
-    assert client.post("/api/samples/nope").status_code == 404

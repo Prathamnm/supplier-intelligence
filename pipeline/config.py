@@ -158,6 +158,10 @@ CATEGORY_FLAG_MULTIPLE = 2.0
 
 # ------------------------------------------------------------- output
 
+# Where the project lives, quoted in the approach document.
+LIVE_URL = "https://supplier-intelligence-iota.vercel.app"
+REPO_URL = "https://github.com/Prathamnm/supplier-intelligence"
+
 TOP_N_BRIEFS = 5          # D4: negotiation briefs
 TOP_N_REPLACE = 3         # D5: suppliers to replace
 ALTERNATIVES_PER_CATEGORY = 2

@@ -32,7 +32,6 @@ from fastapi.responses import FileResponse
 
 from api.settings import Settings
 from api.store import AnalysisStore
-from evaluation.scenarios import SCENARIOS
 from pipeline import schema as file_schema
 
 log = logging.getLogger("supplier-intelligence.api")
@@ -43,7 +42,7 @@ BRIEF_FILE = re.compile(r"^[A-Za-z0-9_-]{1,64}\.(html|pdf)$")
 CHUNK = 1 << 20
 
 # The heavy half of the app, imported once, off the request path.
-_HEAVY = ("pipeline.run", "pipeline.quality", "evaluation.generate")
+_HEAVY = ("pipeline.run", "pipeline.quality")
 _warm = threading.Event()
 
 
@@ -154,29 +153,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
         meta = {"id": analysis_id, "source": "upload", "created": _now(), "status": "running",
                 "files": received}
-        store.write_meta(path, meta)
-        return _analyse(path, meta)
-
-    @app.get("/api/samples")
-    def samples() -> list[dict]:
-        return [{"name": s.name, "title": s.title, "purpose": s.purpose,
-                 "suppliers": s.n_suppliers, "orders": s.n_orders} for s in SCENARIOS]
-
-    @app.post("/api/samples/{name}", status_code=201)
-    def analyse_sample(name: str) -> dict:
-        """Generate a synthetic dataset (evaluation/) and analyse it -- for trying
-        the app without your own files."""
-        scenario = next((s for s in SCENARIOS if s.name == name), None)
-        if scenario is None:
-            raise HTTPException(404, f"No sample named {name!r}.")
-        from evaluation.generate import generate
-        analysis_id, path = store.create()
-        generate(scenario, path)          # writes path/raw/*.csv and path/truth.json
-        (path / "truth.json").unlink(missing_ok=True)
-        meta = {"id": analysis_id, "source": "sample", "sample": scenario.title, "created": _now(),
-                "status": "running",
-                "files": [{"name": p.name, "bytes": p.stat().st_size, "detected_as": _identify(p)}
-                          for p in sorted((path / "raw").glob("*.csv"))]}
         store.write_meta(path, meta)
         return _analyse(path, meta)
 

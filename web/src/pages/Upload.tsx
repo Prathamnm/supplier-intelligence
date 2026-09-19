@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type DragEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { analyseSample, ApiError, createAnalysis, getSamples, getSchema, type Sample, type Schema } from '../lib/api'
+import { ApiError, createAnalysis, getSchema, type Schema } from '../lib/api'
 import { useDatasetState } from '../lib/dataset'
 import bundledSchema from '../data/schema.json'
 import { Card, Pill, Section } from '../components/ui'
@@ -61,7 +61,6 @@ export default function Upload() {
   // The file rules ship with the site, so files can be checked the instant they're
   // dropped -- no waiting for the API to wake. The server's copy replaces it when it answers.
   const [schema, setSchema] = useState<Schema>({ ...bundledSchema, max_file_mb: 25, max_files: 10 })
-  const [samples, setSamples] = useState<Sample[]>([])
   const [server, setServer] = useState<'checking' | 'up' | 'down'>('checking')
   const [picked, setPicked] = useState<Picked[]>([])
   const [dragging, setDragging] = useState(false)
@@ -83,10 +82,9 @@ export default function Upload() {
   useEffect(() => {
     setServer('checking')
     setSlow(false)
-    Promise.all([getSchema(), getSamples()])
-      .then(([s, samp]) => {
+    getSchema()
+      .then((s) => {
         setSchema(s)
-        setSamples(samp)
         setServer('up')
       })
       .catch(() => setServer('down'))
@@ -141,16 +139,6 @@ export default function Upload() {
         if (fraction < 1) setPhase({ kind: 'uploading', fraction })
         else setPhase({ kind: 'analysing', label: 'Analysing your data', started: Date.now() })
       })
-      await finish(meta.id)
-    } catch (e) {
-      setPhase({ kind: 'error', message: e instanceof ApiError ? e.message : 'Something went wrong.' })
-    }
-  }
-
-  async function runSample(s: Sample) {
-    try {
-      setPhase({ kind: 'analysing', label: `Generating and analysing “${s.title}”`, started: Date.now() })
-      const meta = await analyseSample(s.name)
       await finish(meta.id)
     } catch (e) {
       setPhase({ kind: 'error', message: e instanceof ApiError ? e.message : 'Something went wrong.' })
@@ -348,30 +336,6 @@ export default function Upload() {
         </Card>
       </Section>
 
-      {samples.length > 0 && (
-        <Section eyebrow="No files to hand?" title="Try a sample"
-          lede="Made-up data in the same format, each with some problem suppliers hidden in it. See whether the analysis finds them.">
-          <div className="grid gap-3 md:grid-cols-2">
-            {samples.map((s) => (
-              <Card key={s.name} className="flex flex-col p-4">
-                <div className="flex items-baseline justify-between gap-2">
-                  <div className="font-medium">{s.title}</div>
-                  <div className="num text-xs text-ink-3">{s.suppliers} suppliers · {s.orders.toLocaleString('en-IN')} orders</div>
-                </div>
-                <p className="mt-1 text-xs leading-relaxed text-ink-2">{s.purpose}</p>
-                <button
-                  type="button"
-                  onClick={() => runSample(s)}
-                  disabled={busy}
-                  className="mt-3 self-start rounded-lg border border-line px-3 py-1.5 text-sm text-ink-2 hover:border-accent hover:text-ink disabled:opacity-40"
-                >
-                  Analyse this sample
-                </button>
-              </Card>
-            ))}
-          </div>
-        </Section>
-      )}
     </div>
   )
 }

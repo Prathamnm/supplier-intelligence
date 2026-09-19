@@ -48,18 +48,9 @@ export interface Schema {
   max_files: number
 }
 
-export interface Sample {
-  name: string
-  title: string
-  purpose: string
-  suppliers: number
-  orders: number
-}
-
 export interface AnalysisMeta {
   id: string
-  source: 'upload' | 'sample'
-  sample?: string
+  source: 'upload'
   created: string
   completed?: string
   runtime_s?: number
@@ -86,9 +77,6 @@ export function wakeApi(): void {
   getHealth().catch(() => undefined)
 }
 export const getSchema = () => request<Schema>('/schema')
-export const getSamples = () => request<Sample[]>('/samples')
-export const analyseSample = (name: string) =>
-  request<AnalysisMeta>(`/samples/${encodeURIComponent(name)}`, { method: 'POST' })
 
 /**
  * Upload files and run the analysis. Uses XHR rather than fetch so the
