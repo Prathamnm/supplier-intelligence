@@ -31,6 +31,8 @@ export default function Attribution() {
   const m = METRICS.find((x) => x.key === metric) ?? METRICS[0]
   const max = Math.max(...methods.map((x) => x[metric]), 0.01)
   const rule = a.baselines.most_recent_batch
+  // With too few traced returns there is no model and no test -- only the rule.
+  const trained = a.method === 'model'
 
   const coefs = Object.entries(a.coefficients).sort((p, q) => Math.abs(q[1]) - Math.abs(p[1]))
   const cmax = Math.max(...coefs.map(([, v]) => Math.abs(v)), 1e-9)
@@ -47,6 +49,21 @@ export default function Attribution() {
       .filter((r) => r.source === 'inferred')
       .filter((r) => !f || `${r.return_id} ${r.material_id} ${r.supplier_attributed} ${r.reason}`.toLowerCase().includes(f))
   }, [returns, filter])
+
+  if (counts.returns === 0) {
+    return (
+      <section className="animate-fade">
+        <div className="text-xs font-medium uppercase tracking-[.14em] text-ink-3">Untraced returns</div>
+        <h1 className="mt-3 max-w-4xl text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+          This data has no customer returns, so there is nothing to trace.
+        </h1>
+        <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink-2">
+          Money lost to returns is zero for every supplier. Short deliveries, rejected material, lateness and price are all still
+          scored on the other pages.
+        </p>
+      </section>
+    )
+  }
 
   return (
     <div className="space-y-14">
@@ -96,10 +113,22 @@ export default function Attribution() {
             sub={<>Charged to the wrong supplier when tested (lower is better). The assignment’s suggested rule: {frac(rule.misallocation)}</>} />
         )}
         {rule && <Stat label="Right supplier in our top 3" value={frac(a.metrics.top3)} sub={<>The suggested rule: {frac(rule.top3)}</>} />}
-        <Stat label="Tested on" value={`${a.metrics.n ?? 0} returns`} sub="Each one’s supplier hidden, guessed, then checked" />
+        {trained && <Stat label="Tested on" value={`${a.metrics.n ?? 0} returns`} sub="Each one’s supplier hidden, guessed, then checked" />}
         <Stat label="Value of untraced returns" value={inrShort(summary.totals.return_loss_inferred)} sub="Shared out between their likely suppliers" />
       </section>
 
+      {!trained && (
+        <Card className="border-warn/40 p-5">
+          <div className="font-medium text-warn">No model was trained for this data</div>
+          <p className="mt-1 max-w-3xl text-sm leading-relaxed text-ink-2">
+            Only {counts.returns_labelled ?? 0} returns have a supplier written down — not enough to learn from and test
+            against. So each untraced return goes to the supplier who most recently delivered that material (the assignment’s
+            suggested rule). Treat these as rough estimates: negotiation briefs only ever claim returns that are on record.
+          </p>
+        </Card>
+      )}
+
+      {trained && (<>
       <Section eyebrow="Does it work?" title="Tested against simpler approaches"
         lede={`To check the estimates, we took the ${a.metrics.n ?? 0} returns where the supplier IS recorded, covered up the answer, let each method guess, then compared.`}
         aside={
@@ -205,6 +234,8 @@ export default function Attribution() {
           </Card>
         </Section>
       </div>
+
+      </>)}
 
       <Section eyebrow="The result" title={`The ${counts.returns_blank} untraced returns`}
         lede="Each return with its three most likely suppliers, and how likely each one is."

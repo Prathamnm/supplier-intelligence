@@ -56,7 +56,11 @@ export default function Overview() {
         <Stat
           label="Returns with no supplier recorded"
           value={`${counts.returns_blank} of ${counts.returns}`}
-          sub={<>Traced to their likely supplier; {frac(attribution.metrics.misallocation, 1)} of the value misallocated when tested</>}
+          sub={attribution.method === 'model'
+            ? <>Traced to their likely supplier; {frac(attribution.metrics.misallocation, 1)} of the value misallocated when tested</>
+            : attribution.method === 'none'
+              ? <>This data has no customer returns</>
+              : <>Given to the most recent supplier of that material (too few traced returns to train a model)</>}
         />
         {validation.available && validation.flagged.length > 0 ? (
           <Stat

@@ -54,6 +54,7 @@ def run(raw: Path | None = None, pdf: bool = True, web: bool = True,
     print("Supplier intelligence pipeline")
 
     ds = load.load_all(raw, q)
+    _check_size(ds)
     t.mark("01 load")
 
     fact, mapping = prepare.build_fact_table(ds, q)
@@ -104,7 +105,8 @@ def run(raw: Path | None = None, pdf: bool = True, web: bool = True,
         "quality.json": q.to_dict(),
         # The file rules, bundled into the site so the Upload page can check
         # files instantly, before the API has even woken up.
-        "schema.json": {"files": {n: sorted(c) for n, c in schema.SIGNATURES.items()}},
+        "schema.json": {"files": {n: sorted(c) for n, c in schema.SIGNATURES.items()},
+                        "optional": sorted(schema.OPTIONAL)},
     }
     targets = [out / "data"] + ([config.WEB_DATA] if web else [])
     for target in targets:
@@ -260,6 +262,18 @@ def _returns(att) -> list[dict]:
             "reason", "source", "supplier_attributed", "confidence", "top3", "model_agrees"]
     pr = att.per_return
     return export.records(pr, [c for c in cols if c in pr.columns])
+
+
+def _check_size(ds: load.Dataset) -> None:
+    """Stop before running out of memory on a small host, with a way forward."""
+    limit = config.MAX_CANDIDATE_PAIRS
+    n_returns = len(ds.customer_returns)
+    n_suppliers = ds.purchase_orders["supplier_id"].nunique()
+    if limit and n_returns * n_suppliers > limit:
+        raise PipelineError(
+            f"This data is too large for the online server ({n_returns:,} customer returns across "
+            f"{n_suppliers} suppliers). Upload a shorter period (for example the last 12 months), "
+            f"or run the analysis on your own computer, which has no size limit.")
 
 
 def main(argv: list[str] | None = None) -> int:

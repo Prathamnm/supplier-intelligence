@@ -18,6 +18,15 @@ SIGNATURES: dict[str, set[str]] = {
 }
 
 
+# Used only for context (never for scoring), and few businesses keep one.
+OPTIONAL: frozenset[str] = frozenset({"market_price_index"})
+
+
+def sniff_delimiter(header: str) -> str:
+    """Comma, semicolon (European Excel) or tab: whichever splits the header row most."""
+    return max((",", ";", "\t"), key=header.count)
+
+
 def identify(columns: Iterable[str]) -> str | None:
     """The first file type whose identifying columns are all present."""
     cols = {str(c).strip() for c in columns}

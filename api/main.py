@@ -168,6 +168,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         """The columns that identify each required file -- the pipeline's own rules,
         so the upload page checks files exactly as the backend will."""
         return {"files": {name: sorted(cols) for name, cols in file_schema.SIGNATURES.items()},
+                "optional": sorted(file_schema.OPTIONAL),
                 "max_file_mb": settings.max_file_mb, "max_files": settings.max_files}
 
     @app.post("/api/analyses", status_code=201)
@@ -244,7 +245,9 @@ def _identify(csv_path: Path) -> str | None:
     """Which required file this is, judged from its header row alone."""
     try:
         with csv_path.open(encoding="utf-8-sig", newline="") as f:
-            return file_schema.identify(next(csv.reader(f), []))
+            header = f.readline()
+        row = next(csv.reader([header], delimiter=file_schema.sniff_delimiter(header)), [])
+        return file_schema.identify(row)
     except (OSError, UnicodeDecodeError, csv.Error):
         return None
 

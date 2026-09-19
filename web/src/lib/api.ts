@@ -44,6 +44,8 @@ async function detail(res: Response): Promise<string> {
 
 export interface Schema {
   files: Record<string, string[]>
+  /** File types the analysis can do without. */
+  optional?: string[]
   max_file_mb: number
   max_files: number
 }

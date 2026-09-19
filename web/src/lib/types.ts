@@ -183,7 +183,7 @@ export interface Summary {
   }
   replacements: Replacement[]
   attribution: {
-    method: 'model' | 'fallback'
+    method: 'model' | 'fallback' | 'none'
     metrics: Score & { cv_folds: number; blend_alpha?: number }
     baselines: Record<string, Score & { label: string }>
     coefficients: Record<string, number>

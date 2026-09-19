@@ -7,6 +7,7 @@ different dataset and the pipeline discovers its own suppliers,
 categories and distributions.
 """
 
+import os
 from pathlib import Path
 
 # ---------------------------------------------------------------- paths
@@ -47,6 +48,15 @@ LABEL_COLUMN = "is_underperformer"
 # A required date or number column with more than this share of values that
 # cannot be parsed stops the run: continuing would produce confident nonsense.
 MAX_UNPARSEABLE_SHARE = 0.05
+# Orders missing a quantity, price or amount are left out, up to this share;
+# beyond it the export itself is suspect and the run stops.
+MAX_INCOMPLETE_SHARE = 0.10
+# Attribution builds one row per (return, supplier) pair and memory grows with it:
+# ~130k pairs peak near 300 MB, ~460k near 550 MB. The hosted API sets a cap
+# (SI_MAX_PAIRS) that fits its 512 MB; run locally, there is no limit.
+MAX_CANDIDATE_PAIRS = int(os.environ.get("SI_MAX_PAIRS", "0")) or None
+# Scores compare suppliers with each other, so fewer than this is not a panel.
+MIN_SUPPLIERS = 3
 
 # ---------------------------------------------------------- attribution
 

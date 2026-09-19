@@ -46,9 +46,9 @@ cd ..
 uvicorn api.main:app --port 8000  # interactive docs at http://localhost:8000/docs
 ```
 
-Open **http://localhost:5173/#/upload**, drop in six CSVs (any file names) or pick a generated sample, and every page switches to that analysis. A banner shows which dataset you're viewing, with a shareable link and a button back to the assignment data.
+Open **http://localhost:5173/#/upload**, drop in the CSVs (any file names; the market price index is optional), and every page switches to that analysis. A banner shows which dataset you're viewing, with a shareable link and a button back to the assignment data.
 
-On a new dataset: drop the six CSVs (any file names) into `pipeline/data/raw/` or pass `--raw path/`, then run the same command. Suppliers, materials and thresholds are discovered; the model refits. `--no-pdf` skips browser printing.
+On a new dataset: drop the CSVs (any file names; the market price index is optional) into `pipeline/data/raw/` or pass `--raw path/`, then run the same command. Suppliers, materials and thresholds are discovered; the model refits. `--no-pdf` skips browser printing.
 
 ## How it works
 

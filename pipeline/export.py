@@ -54,6 +54,7 @@ def write_csv(path: Path, df: pd.DataFrame) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     out = df.copy()
     for col in out.columns:
-        if out[col].map(lambda v: isinstance(v, (list, dict))).any():
+        # Lists and dicts only ever sit in object columns.
+        if out[col].dtype == object and out[col].map(lambda v: isinstance(v, (list, dict))).any():
             out[col] = out[col].map(lambda v: json.dumps(_clean(v)))
     out.to_csv(path, index=False)

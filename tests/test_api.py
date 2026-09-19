@@ -162,3 +162,10 @@ def test_uploaded_briefs_do_not_name_the_assignment_company(client, tmp_path):
     brief = client.get(f"/api/analyses/{meta['id']}/data/briefs.json").json()[0]
     page = client.get(f"/api/analyses/{meta['id']}/briefs/{brief['files']['html']}").text
     assert "Supplier negotiation brief" in page and "Arora" not in page
+
+
+def test_too_large_for_the_server_is_a_clear_422(client, tmp_path, monkeypatch):
+    from pipeline import config
+    monkeypatch.setattr(config, "MAX_CANDIDATE_PAIRS", 100)
+    r = _upload(client, make_synthetic(tmp_path / "raw"))
+    assert r.status_code == 422 and "too large for the online server" in r.json()["detail"]

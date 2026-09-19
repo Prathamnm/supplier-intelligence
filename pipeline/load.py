@@ -20,7 +20,7 @@ import pandas as pd
 
 from pipeline import config
 from pipeline.quality import PipelineError, Quality
-from pipeline.schema import SIGNATURES
+from pipeline.schema import OPTIONAL, SIGNATURES, sniff_delimiter
 from pipeline.schema import identify as identify_columns
 
 STAGE = "01-load"
@@ -71,7 +71,18 @@ KEY_COLS: dict[str, str] = {
     "goods_receipts": "gr_id",
     "customer_returns": "return_id",
     "supplier_master": "supplier_id",
+    "payment_records": "po_id",
 }
+
+# Without these a row cannot enter the rupee arithmetic at all.
+ESSENTIAL_COLS: dict[str, list[str]] = {
+    "purchase_orders": ["po_id", "po_date", "supplier_id", "material_id", "quantity_ordered",
+                        "unit_price_quoted"],
+    "goods_receipts": ["po_id", "quantity_received", "invoice_amount_billed"],
+    "customer_returns": ["return_id", "return_date", "material_id", "quantity_returned"],
+}
+# A decimal comma, as in European exports: 93910,87 or 1.234,5 (never Indian 1,00,000).
+DECIMAL_COMMA = re.compile(r"^-?[\d.]*\d,\d{1,2}$")
 
 
 @dataclass
@@ -121,7 +132,12 @@ def _discover(raw_dir: Path, q: Quality) -> dict[str, pd.DataFrame]:
         # utf-8-sig drops the byte-order mark Excel writes, which would
         # otherwise corrupt the first column's name. Everything is read as
         # text and typed deliberately in _coerce.
-        df = pd.read_csv(path, encoding="utf-8-sig", dtype=str)
+        with path.open(encoding="utf-8-sig", errors="replace") as f:
+            sep = sniff_delimiter(f.readline())
+        df = pd.read_csv(path, encoding="utf-8-sig", dtype=str, sep=sep)
+        if sep != ",":
+            kind = "semicolon" if sep == ";" else "tab"
+            q.info(STAGE, "Delimiter", f"{path.name} is {kind}-separated.")
         df.columns = [str(c).strip() for c in df.columns]
         name = identify(df)
         if name is None:
@@ -142,12 +158,18 @@ def _discover(raw_dir: Path, q: Quality) -> dict[str, pd.DataFrame]:
         found[name] = df
         q.count(f"rows.{name}", len(df))
 
-    missing = set(SIGNATURES) - set(found)
+    missing = set(SIGNATURES) - set(found) - OPTIONAL
     if missing:
         raise PipelineError(
             f"Missing required file(s): {', '.join(sorted(missing))}. "
             f"Found: {', '.join(sorted(found))}."
         )
+    if "market_price_index" not in found:
+        q.info(STAGE, "No market price file",
+               "No market price index was uploaded. It is only ever context: prices are "
+               "compared with what other suppliers charged, so nothing else changes.")
+        found["market_price_index"] = pd.DataFrame(
+            columns=["month", "material_category", "market_price_per_mt", "source"])
     return found
 
 
@@ -197,8 +219,12 @@ def _parse_dates(s: pd.Series, day_first: bool) -> pd.Series:
 
 
 def _parse_numbers(s: pd.Series) -> pd.Series:
-    """'23,26,836.99', '₹ 1,200' and ' 42 ' all become numbers."""
-    text = s.astype("string").str.replace(NUMBER_NOISE, "", regex=True)
+    """'23,26,836.99', '₹ 1,200' and ' 42 ' all become numbers -- and so does a
+    European '93.910,87', decided per column so a thousands comma is never misread."""
+    text = s.astype("string").str.strip()
+    if text.str.match(DECIMAL_COMMA).fillna(False).any():
+        text = text.str.replace(".", "", regex=False).str.replace(",", ".", regex=False)
+    text = text.str.replace(NUMBER_NOISE, "", regex=True)
     return pd.to_numeric(text.replace("", pd.NA), errors="coerce")
 
 
@@ -230,6 +256,12 @@ def _coerce(name: str, df: pd.DataFrame, day_first: bool, q: Quality) -> pd.Data
 
 
 def _dedupe(name: str, df: pd.DataFrame, q: Quality) -> pd.DataFrame:
+    exact = int(df.duplicated().sum())
+    if exact:
+        q.warn(STAGE, "Duplicate rows",
+               f"{name}: {exact} rows appear twice, identically; the copies were removed.",
+               rows_affected=exact, action="removed")
+        df = df.drop_duplicates()
     key = KEY_COLS.get(name)
     if key is None or key not in df.columns:
         return df
@@ -240,6 +272,67 @@ def _dedupe(name: str, df: pd.DataFrame, q: Quality) -> pd.DataFrame:
                rows_affected=dupes, action="kept first occurrence")
         df = df.drop_duplicates(subset=key, keep="first")
     return df
+
+
+def _drop_incomplete(frames: dict[str, pd.DataFrame], q: Quality) -> None:
+    """Orders (and returns) missing a quantity, price, amount, date or party are set
+    aside, with the whole order, so no rupee figure is built on a guess. A few such
+    rows are normal in real exports; many mean the export itself is wrong."""
+    po, gr = frames["purchase_orders"], frames["goods_receipts"]
+    po_gap = po[ESSENTIAL_COLS["purchase_orders"]].isna().any(axis=1)
+    gr_gap = gr[ESSENTIAL_COLS["goods_receipts"]].isna().any(axis=1)
+    drop = po_gap | po["po_id"].isin(set(gr.loc[gr_gap, "po_id"].dropna()))
+    if drop.any():
+        n = int(drop.sum())
+        _limit("orders", n, len(po), "a quantity, price, invoice amount, date, supplier or material")
+        q.warn(STAGE, "Incomplete orders set aside",
+               f"{n} of {len(po)} orders are missing a quantity, price, invoice amount, date, "
+               f"supplier or material, and were left out of every figure.",
+               rows_affected=n, action="excluded")
+        frames["purchase_orders"] = po[~drop]
+        kept = set(frames["purchase_orders"]["po_id"])
+        frames["goods_receipts"] = gr[gr["po_id"].isin(kept)]
+        pay = frames["payment_records"]
+        frames["payment_records"] = pay[pay["po_id"].isin(kept)]
+
+    ret = frames["customer_returns"]
+    ret_gap = ret[ESSENTIAL_COLS["customer_returns"]].isna().any(axis=1)
+    if ret_gap.any():
+        n = int(ret_gap.sum())
+        _limit("customer returns", n, len(ret), "a date, material or quantity")
+        q.warn(STAGE, "Incomplete returns set aside",
+               f"{n} of {len(ret)} customer returns are missing a date, material or quantity, "
+               f"and were left out.", rows_affected=n, action="excluded")
+        frames["customer_returns"] = ret[~ret_gap]
+
+
+def _limit(what: str, bad: int, total: int, missing: str) -> None:
+    if total and bad / total > config.MAX_INCOMPLETE_SHARE:
+        raise PipelineError(
+            f"{bad} of {total} {what} ({bad / total:.0%}) are missing {missing}. That is too many "
+            f"to leave out safely; check the export and upload again.")
+
+
+def _add_unlisted_suppliers(frames: dict[str, pd.DataFrame], q: Quality) -> None:
+    """A supplier with orders but no row in the supplier list is still analysed,
+    under its ID -- dropping it would hide exactly the kind of supplier we look for."""
+    sm = frames["supplier_master"]
+    missing = sorted(set(frames["purchase_orders"]["supplier_id"]) - set(sm["supplier_id"]))
+    if missing:
+        shown = ", ".join(missing[:8]) + (" ..." if len(missing) > 8 else "")
+        q.warn(STAGE, "Suppliers missing from the supplier list",
+               f"{shown} have orders but no row in the supplier list; they are analysed and "
+               f"shown by their ID.", rows_affected=len(missing), action="added by ID")
+        extra = pd.DataFrame({"supplier_id": missing, "supplier_name": missing})
+        frames["supplier_master"] = pd.concat([sm, extra], ignore_index=True)
+
+
+def _check_panel(po: pd.DataFrame) -> None:
+    n = po["supplier_id"].nunique()
+    if n < config.MIN_SUPPLIERS:
+        raise PipelineError(
+            f"The analysis compares suppliers with each other, so it needs orders from at least "
+            f"{config.MIN_SUPPLIERS} suppliers; this data has {n}.")
 
 
 def _check_units(po: pd.DataFrame, q: Quality) -> None:
@@ -255,9 +348,9 @@ def _check_units(po: pd.DataFrame, q: Quality) -> None:
         q.info(STAGE, "Units uniform", f"All quantities are in {units[0]!r}.")
     else:
         raise PipelineError(
-            f"Mixed units in purchase_orders.unit: {sorted(units)}. "
-            "unit_price_quoted is on different scales across rows, so every "
-            "rupee figure would be wrong. Add a conversion table to config.py."
+            f"Purchase orders use more than one unit ({', '.join(sorted(units))}), so their "
+            "prices are on different scales and every rupee figure would be wrong. "
+            "Convert all quantities and prices to one unit (e.g. MT) and upload again."
         )
 
 
@@ -321,6 +414,9 @@ def load_all(raw_dir: Path | None = None, q: Quality | None = None) -> Dataset:
     frames = {n: _coerce(n, df, day_first, q) for n, df in frames.items()}
     frames = {n: _dedupe(n, df, q) for n, df in frames.items()}
 
+    _drop_incomplete(frames, q)
+    _add_unlisted_suppliers(frames, q)
+    _check_panel(frames["purchase_orders"])
     _check_units(frames["purchase_orders"], q)
     _check_billing_identity(frames["purchase_orders"], frames["goods_receipts"], q)
 

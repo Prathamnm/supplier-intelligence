@@ -140,7 +140,7 @@ def test_mixed_units_fail_clearly(tmp_path):
     po = pd.read_csv(raw / "Book1.csv")
     po.loc[0, "unit"] = "KG"
     po.to_csv(raw / "Book1.csv", index=False)
-    with pytest.raises(PipelineError, match="Mixed units"):
+    with pytest.raises(PipelineError, match="more than one unit"):
         load.load_all(raw, Quality())
 
 
@@ -190,3 +190,113 @@ def test_unparseable_numbers_stop_the_run(tmp_path):
     po.to_csv(raw / "Book1.csv", index=False)
     with pytest.raises(PipelineError, match="unit_price_quoted"):
         load.load_all(raw, Quality())
+
+
+def test_a_method_that_omits_the_true_supplier_scores_a_miss():
+    """A rule that names one supplier per return must not be scored only on the
+    returns it happened to get right."""
+    import pandas as pd
+
+    from pipeline.attribute import tie_aware_hits
+
+    rule = pd.DataFrame({"return_id": ["R1", "R2", "R3", "R4"],
+                         "supplier_id": ["A", "B", "C", "D"], "p": 1.0})
+    truth = pd.Series({"R1": "A", "R2": "X", "R3": "X", "R4": "X"})
+    hits = tie_aware_hits(rule, "p", truth)
+    assert hits["top1"].tolist() == [1.0, 0.0, 0.0, 0.0]
+    assert hits["top1"].mean() == 0.25 and hits["rr"].mean() == 0.25
+
+
+# ------------------------------------------------ real-world uploads
+
+def _edit(raw, name, fn):
+    path = raw / f"{name}.csv"
+    fn(pd.read_csv(path, dtype=str, keep_default_na=False)).to_csv(path, index=False)
+
+
+def _run(raw, tmp_path):
+    return run(raw, pdf=False, web=False, out=tmp_path / "out")
+
+
+def test_semicolon_export_with_decimal_commas_reads_the_same(tmp_path):
+    raw = make_synthetic(tmp_path / "raw")
+    base = load.load_all(raw)
+    for p in raw.glob("*.csv"):
+        df = pd.read_csv(p, dtype=str, keep_default_na=False)
+        for c in ("unit_price_quoted", "invoice_amount_billed", "quantity_received"):
+            if c in df:
+                df[c] = df[c].str.replace(".", ",", regex=False)
+        df.to_csv(p, index=False, sep=";")
+    eu = load.load_all(raw)
+    pd.testing.assert_series_equal(eu.goods_receipts["invoice_amount_billed"],
+                                   base.goods_receipts["invoice_amount_billed"])
+    pd.testing.assert_series_equal(eu.purchase_orders["unit_price_quoted"],
+                                   base.purchase_orders["unit_price_quoted"])
+
+
+def test_indian_thousands_are_not_mistaken_for_decimal_commas():
+    indian = load._parse_numbers(pd.Series(["1,00,000", "23,26,836.99", "₹ 1,200", "42"]))
+    assert indian.tolist() == [100000.0, 2326836.99, 1200.0, 42.0]
+    european = load._parse_numbers(pd.Series(["93.910,87", "1.200", "5,5"]))
+    assert european.tolist() == [93910.87, 1200.0, 5.5]
+
+
+def test_duplicated_rows_are_removed_not_fatal(tmp_path):
+    raw = make_synthetic(tmp_path / "raw")
+    for p in raw.glob("*.csv"):
+        df = pd.read_csv(p, dtype=str, keep_default_na=False)
+        pd.concat([df, df.head(20)]).to_csv(p, index=False)
+    q = Quality()
+    ds = load.load_all(raw, q)
+    assert not ds.payment_records["po_id"].duplicated().any()
+    assert any(f.title == "Duplicate rows" for f in q.findings)
+
+
+def test_a_few_blank_quantities_are_left_out_many_stop_the_run(tmp_path):
+    raw = make_synthetic(tmp_path / "raw")
+    _edit(raw, "export (2)", lambda d: d.assign(quantity_received=np.where(
+        np.arange(len(d)) % 25 == 0, "", d["quantity_received"])))
+    ds = load.load_all(raw)
+    assert ds.purchase_orders["po_id"].isin(ds.goods_receipts["po_id"]).all()
+    assert len(ds.purchase_orders) == 900 - 36
+    _edit(raw, "export (2)", lambda d: d.assign(quantity_received=np.where(
+        np.arange(len(d)) % 5 == 0, "", d["quantity_received"])))
+    with pytest.raises(PipelineError, match="too many"):
+        load.load_all(raw)
+
+
+def test_supplier_missing_from_the_list_is_still_analysed(tmp_path):
+    raw = make_synthetic(tmp_path / "raw")
+    _edit(raw, "vendors", lambda d: d[d["supplier_id"] != "SUP-001"])
+    summary = _run(raw, tmp_path)
+    assert "SUP-001" in summary["bottom"]["suppliers"]
+
+
+def test_too_few_suppliers_is_a_clear_error(tmp_path):
+    raw = make_synthetic(tmp_path / "raw", n_suppliers=2, bad=(1,))
+    with pytest.raises(PipelineError, match="at least 3 suppliers"):
+        load.load_all(raw)
+
+
+def test_no_traced_returns_falls_back_to_the_rule(tmp_path):
+    raw = make_synthetic(tmp_path / "raw", label_share=0.0)
+    summary = _run(raw, tmp_path)
+    assert summary["attribution"]["method"] == "fallback"
+    assert summary["totals"]["return_loss"] > 0
+
+
+def test_no_returns_at_all(tmp_path):
+    raw = make_synthetic(tmp_path / "raw")
+    _edit(raw, "rets", lambda d: d.iloc[:0])
+    summary = _run(raw, tmp_path)
+    assert summary["attribution"]["method"] == "none"
+    assert summary["totals"]["return_loss"] == 0
+    assert set(summary["bottom"]["suppliers"]) >= {"SUP-001", "SUP-004"}
+
+
+def test_market_price_file_is_optional(tmp_path):
+    raw = make_synthetic(tmp_path / "raw")
+    (raw / "prices.csv").unlink()
+    summary = _run(raw, tmp_path)
+    assert summary["index_context"] == []
+    assert set(summary["bottom"]["suppliers"]) >= {"SUP-001", "SUP-004"}

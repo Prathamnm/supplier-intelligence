@@ -139,7 +139,9 @@ export default function Upload() {
     if (e.dataTransfer.files.length) void add(e.dataTransfer.files)
   }
 
-  const required = Object.keys(schema.files)
+  const kinds = Object.keys(schema.files)
+  const optional = new Set(schema.optional ?? [])
+  const required = kinds.filter((k) => !optional.has(k))
   const found = new Map(picked.filter((p) => p.detected).map((p) => [p.detected as string, p]))
   const missing = required.filter((r) => !found.has(r))
   const tooBig = picked.filter((p) => p.file.size > schema.max_file_mb * 1e6)
@@ -153,7 +155,7 @@ export default function Upload() {
   }
 
   async function run() {
-    const files = required.flatMap((r) => found.get(r)?.file ?? [])
+    const files = kinds.flatMap((r) => found.get(r)?.file ?? [])
     try {
       setPhase({ kind: 'uploading', fraction: 0 })
       const meta = await createAnalysis(files, (fraction) => {
@@ -170,10 +172,11 @@ export default function Upload() {
     <div className="space-y-12">
       <section className="animate-fade">
         <div className="text-xs font-medium uppercase tracking-[.14em] text-ink-3">Check your own suppliers</div>
-        <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">Upload your six files. Get the same analysis for your suppliers.</h1>
+        <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">Upload your files. Get the same analysis for your suppliers.</h1>
         <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink-2">
           Scores, money lost, traced returns and negotiation briefs — worked out from your purchase orders, deliveries, payments and
-          returns. File names don’t matter; each file is recognised by its columns. Excel and Tally exports work as they are.
+          returns. File names don’t matter; each file is recognised by its columns. Excel and Tally exports work as they are, and
+          the market price file is optional.
         </p>
       </section>
 
@@ -225,7 +228,7 @@ export default function Upload() {
               <path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <div className="mt-3 text-base font-medium">Drop your CSV files here</div>
-            <div className="mt-1 text-sm text-ink-3">all six at once, or a few at a time</div>
+            <div className="mt-1 text-sm text-ink-3">all at once, or a few at a time</div>
             <button
               type="button"
               disabled={busy}
@@ -249,12 +252,13 @@ export default function Upload() {
 
           <Card className="p-5">
             <div className="flex items-baseline justify-between">
-              <div className="text-sm font-medium">Required files</div>
+              <div className="text-sm font-medium">Your files</div>
               <div className="num text-xs text-ink-3">{required.length - missing.length} / {required.length}</div>
             </div>
             <ul className="mt-3 space-y-2">
-              {required.map((r) => {
+              {kinds.map((r) => {
                 const p = found.get(r)
+                const opt = optional.has(r)
                 return (
                   <li key={r} className="flex items-center gap-3 text-sm">
                     <span
@@ -263,8 +267,9 @@ export default function Upload() {
                     >
                       {p ? '✓' : ''}
                     </span>
-                    <span className="sr-only">{p ? 'Present:' : 'Missing:'}</span>
+                    <span className="sr-only">{p ? 'Present:' : opt ? 'Optional, not added:' : 'Missing:'}</span>
                     <span className={p ? 'text-ink' : 'text-ink-3'}>{FILE_LABEL[r] ?? r}</span>
+                    {opt && !p && <span className="text-xs text-ink-3">optional</span>}
                     {p && <span className="ml-auto truncate text-xs text-ink-3" title={p.file.name}>{p.file.name}</span>}
                   </li>
                 )
@@ -328,7 +333,7 @@ export default function Upload() {
             disabled={!ready}
             className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Analyse {picked.length ? `${Math.min(found.size, required.length)} files` : ''}
+            Analyse {picked.length ? `${found.size} files` : ''}
           </button>
           <div className="min-w-0 flex-1 text-sm" aria-live="polite">
             {phase.kind === 'idle' && (

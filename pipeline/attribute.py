@@ -237,6 +237,9 @@ def tie_aware_hits(df: pd.DataFrame, prob: str, truth: pd.Series) -> pd.DataFram
     tied = (d[prob] == d["p_true"]).groupby(d["return_id"]).sum()
     out = pd.DataFrame({"better": better, "tied": tied}).reindex(truth.index)
     out = out.assign(found=p_true.notna()).fillna({"better": 0, "tied": 1})
+    # A method that never lists the true supplier gets no credit for that return --
+    # it must count as a miss, not drop out of the average (tied would be 0 → 0/0).
+    out.loc[~out["found"], ["better", "tied"]] = (0, 1)
 
     def credit(k: int) -> pd.Series:
         """Share of tied positions that fall within the top k."""
@@ -362,6 +365,15 @@ def _calibration(scored: pd.DataFrame, truth: pd.Series) -> list[dict]:
 # -------------------------------------------------------------------- run
 
 def run(returns: pd.DataFrame, fact: pd.DataFrame, q: Quality) -> Attribution:
+    if returns.empty:
+        q.info(STAGE, "No customer returns", "The data has no customer returns, so there is "
+               "nothing to attribute; return losses are zero.", action="skipped")
+        empty = pd.DataFrame({"return_id": pd.Series(dtype=str), "supplier_id": pd.Series(dtype=str),
+                              "model_probability": pd.Series(dtype=float)})
+        return Attribution(pairs=_finalise_pairs(empty, returns),
+                           per_return=_per_return(empty, returns),
+                           metrics={"method": "none"}, method="none")
+
     pairs = build_candidates(returns, fact, q)
 
     labelled = returns.dropna(subset=["supplier_id_traced"])
@@ -384,6 +396,10 @@ def run(returns: pd.DataFrame, fact: pd.DataFrame, q: Quality) -> Attribution:
 
     if len(truth) < config.MIN_LABELLED_FOR_TRAINING:
         return _fallback(pairs, returns, q, len(truth))
+    if train["label"].nunique() < 2:
+        return _fallback(pairs, returns, q, len(truth),
+                         reason="every traced return had only one possible supplier, "
+                                "so there is nothing to learn from")
 
     metrics, scored = _cross_validate(train, truth, volume)
     baselines = _baselines(train, truth)
@@ -424,13 +440,14 @@ def run(returns: pd.DataFrame, fact: pd.DataFrame, q: Quality) -> Attribution:
 
 
 def _fallback(pairs: pd.DataFrame, returns: pd.DataFrame, q: Quality,
-              n_labelled: int) -> Attribution:
+              n_labelled: int, reason: str | None = None) -> Attribution:
     """Not enough labels to learn from -- use the rule and say so."""
+    why = reason or (f"only {n_labelled} returns have a supplier recorded, below the minimum "
+                     f"of {config.MIN_LABELLED_FOR_TRAINING}")
     q.warn(STAGE, "Model not trained",
-           f"Only {n_labelled} labelled returns, below the minimum of "
-           f"{config.MIN_LABELLED_FOR_TRAINING}. Falling back to the "
-           f"most-recent-batch rule described in the problem statement. "
-           f"No accuracy figure can be reported.",
+           f"The attribution model was not trained: {why}. Untraced returns go to the "
+           f"supplier who most recently delivered that material (the problem statement's "
+           f"rule). No accuracy figure can be reported.",
            action="rule-based attribution")
     pairs = pairs.copy()
     pairs["model_probability"] = _one_hot(pairs.assign(r=pairs["recency"]), "r")
@@ -461,6 +478,15 @@ def _per_return(pairs: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
     """One row per return: the supplier for the brief, and how sure we are."""
     ranked = pairs.sort_values(["return_id", "model_probability"],
                                ascending=[True, False])
+    if ranked.empty:
+        out = returns.copy()
+        out["top3"] = [[] for _ in range(len(out))]
+        out["model_probability"] = np.nan
+        out["source"] = np.where(out["supplier_id_traced"].notna(), "recorded", "inferred")
+        out["supplier_attributed"] = out["supplier_id_traced"]
+        out["confidence"] = np.where(out["source"] == "recorded", 1.0, np.nan)
+        out["model_agrees"] = np.nan
+        return out
     top3 = (ranked.groupby("return_id").head(3)
             .groupby("return_id")
             .apply(lambda g: [{"supplier_id": s, "p": round(float(p), 4)}

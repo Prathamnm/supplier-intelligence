@@ -93,7 +93,8 @@
   <ol>
     <li><b>{{ ['No', 'One', 'Two', 'Three', 'Four', 'Five'][names|length] if names|length < 6 else names|length }} suppliers are the problem: {{ names | join(', ') }}.</b> They get only {{ b.share_of_spend | pct(0) }} of the orders but cause {{ b.share_of_impact | pct(0) }} of all the money lost, <b>{{ b.total_impact | lakh }} over {{ '%.0f'|format(s.period.years) }} years</b>.</li>
     <li><b>The money is lost in plain ways:</b> material that was billed but never arrived, material customers sent back, and material rejected at Arora’s own gate. Every rupee is worked out order by order and can be checked.</li>
-    <li><b>{{ s.counts.returns_blank }} of the {{ s.counts.returns }} customer returns had no supplier written down.</b> A model traces each one to its most likely supplier. When tested on returns where the answer was known, it put only {{ a.metrics.misallocation | pct }} of the value on the wrong supplier, against {{ rule.misallocation | pct(0) }} for the rule suggested in the assignment.</li>
+    {% if a.method == 'model' %}<li><b>{{ s.counts.returns_blank }} of the {{ s.counts.returns }} customer returns had no supplier written down.</b> A model traces each one to its most likely supplier. When tested on returns where the answer was known, it put only {{ a.metrics.misallocation | pct }} of the value on the wrong supplier, against {{ rule.misallocation | pct(0) }} for the rule suggested in the assignment.</li>
+    {% elif s.counts.returns_blank %}<li><b>{{ s.counts.returns_blank }} of the {{ s.counts.returns }} customer returns had no supplier written down.</b> The returns with a supplier recorded weren’t enough to train and test a model, so each was given to the supplier who most recently delivered that material, and only recorded returns are ever claimed in a brief.</li>{% endif %}
     {% if v.available and v.flagged %}<li><b>The result was double-checked.</b> The dataset secretly marks which suppliers are bad. That column was locked away and never used; opened at the end, it named the same {{ v.hits | length }} of {{ v.flagged | length }} suppliers.</li>{% endif %}
     <li><b>Each bad supplier gets a ready-to-use negotiation brief</b>, with the money they owe, the orders that prove it and what they are likely to argue back. The recommendation is to replace them, and existing suppliers who can take over each material are named.</li>
   </ol>
@@ -108,7 +109,7 @@
 </div>
 
 <h2><span class="no">1</span>The problem, in plain words</h2>
-<p>Arora Traders buys steel from {{ s.counts.suppliers }} suppliers. Some deliver less than they bill for, some deliver late, and some deliver material that fails inspection or comes back from customers. Nobody had added this up per supplier, and {{ (s.counts.returns_blank / s.counts.returns) | pct(0) }} of the customer returns don’t even say which supplier the material came from. That is the “blindspot”.</p>
+<p>Arora Traders buys steel from {{ s.counts.suppliers }} suppliers. Some deliver less than they bill for, some deliver late, and some deliver material that fails inspection or comes back from customers. Nobody had added this up per supplier{% if s.counts.returns %}, and {{ (s.counts.returns_blank / s.counts.returns) | pct(0) }} of the customer returns don’t even say which supplier the material came from{% endif %}. That is the “blindspot”.</p>
 <p>The data covers {{ s.period.start }} to {{ s.period.end }}: {{ "{:,}".format(s.counts.orders) }} purchase orders, their deliveries and payments, {{ s.counts.returns }} customer returns, a market price list and a supplier list. The assignment asked for five things, and each has a clear home:</p>
 <table>
   <tr><th>What was asked</th><th class="n">Marks</th><th>Where to find it</th></tr>
@@ -133,7 +134,7 @@
 <ul>
   <li><b>The answer was hidden in the data.</b> The supplier list has a column marking the bad suppliers. Using it would be cheating, so it is removed the moment the files are read and only opened at the very end, as a check (section 6).</li>
   <li><b>Suppliers bill for what was ordered, not what arrived.</b> This is true on every order, so the gap between what was billed and what arrived is money paid for nothing.</li>
-  <li><b>The market price list can’t judge suppliers.</b> It covers only {{ s.index_context | length }} of the {{ s.counts.materials }} materials, and everyone pays well above it. Prices are therefore compared with what <i>other suppliers</i> charged for the same material in the same quarter.</li>
+  {% if s.index_context %}<li><b>The market price list can’t judge suppliers.</b> It covers only {{ s.index_context | length }} of the {{ s.counts.materials }} materials, and everyone pays well above it. Prices are therefore compared with what <i>other suppliers</i> charged for the same material in the same quarter.</li>{% endif %}
   <li><b>Some fields contradict each other</b>, for example “days late” in payments doesn’t match its own dates. These are recalculated from the raw dates, and every fix is logged ({{ quality.findings | length }} findings in total).</li>
 </ul>
 
@@ -174,6 +175,7 @@
 
 <h2><span class="no">4</span>Tracing returns with no supplier <span class="muted small">· 35% of marks</span></h2>
 <p>{{ s.counts.returns_blank }} customer returns say what came back, when and why, but not which supplier sent it. They can’t simply be ignored, because that would let the worst suppliers off the hook for a large share of their returns.</p>
+{% if a.method == 'model' %}
 <h3>The idea</h3>
 <p>Think of it like narrowing down a suspect list. For each untraced return, the <b>suspects</b> are the suppliers who had delivered that material before the return date. For each suspect, the model looks at clues that were known on that date, never later:</p>
 <ul>{% for k, label in a.feature_labels.items() %}<li>{{ label }}</li>{% endfor %}</ul>
@@ -192,6 +194,11 @@
 <div class="box note">
   <b>Be honest about the limits.</b> For a single return the model often can’t be sure, because several suppliers could have sent it and nothing on the return tells them apart. It picks the right supplier first {{ a.metrics.top1 | pct(0) }} of the time and has it in its top three {{ a.metrics.top3 | pct(0) }} of the time. That is why traced returns count towards the totals as an estimate, but <b>a supplier is only ever asked to pay for returns that are on record</b>.
 </div>
+{% elif s.counts.returns %}
+<div class="box note"><b>No model was trained for this data.</b> The returns with a supplier recorded ({{ s.counts.returns_labelled or 0 }} of them) don’t give enough to learn from and test against. Each untraced return was therefore given to the supplier who most recently delivered that material, the rule the assignment suggests. That estimate feeds the totals, but <b>a supplier is only ever asked to pay for returns that are on record</b>.</div>
+{% else %}
+<p>This data has no customer returns, so there was nothing to trace and return losses are zero.</p>
+{% endif %}
 
 <h2><span class="no">5</span>The scorecard</h2>
 <p>Every supplier gets a score out of 100 (higher is better), built from four checks:</p>
@@ -256,7 +263,7 @@
   </div>
   <div>
     <p><b>Automatic tests</b> check the money formulas, that the hidden answer never reaches the scoring, that relationship length has no effect, the upload service, and every page of the website in a real browser.</p>
-    <p><b>Try it.</b> The live website opens on these results. On its Upload page, anyone can add their own six files (any file names, Excel or Tally exports as they are) and get the same analysis for their suppliers.</p>
+    <p><b>Try it.</b> The live website opens on these results. On its Upload page, anyone can add their own files (any file names, Excel or Tally exports as they are; the market price list is optional) and get the same analysis for their suppliers.</p>
   </div>
 </div>
 </body>

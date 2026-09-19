@@ -16,5 +16,8 @@ services:
         value: 3.13.1
       - key: PLAYWRIGHT_BROWSERS_PATH
         value: /opt/render/project/src/.playwright
+      # Keeps the largest analysis within the free instance's 512 MB (see config.py).
+      - key: SI_MAX_PAIRS
+        value: "300000"
       - key: SI_ALLOWED_ORIGINS
         value: https://supplier-intelligence-iota.vercel.app,http://localhost:5173,http://localhost:4173
