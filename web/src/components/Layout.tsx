@@ -2,6 +2,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import { wakeApi } from '../lib/api'
 import { useDatasetState } from '../lib/dataset'
+import { BrandMark } from './BrandMark'
 import { ErrorBoundary } from './ErrorBoundary'
 import { date } from '../lib/format'
 
@@ -35,13 +36,7 @@ export function Layout() {
       <header className="sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:px-6">
           <NavLink to="/" className="flex items-center gap-2.5" title="Back to the start page">
-            <span className="grid size-7 place-items-center rounded-lg bg-surface-2 ring-1 ring-line">
-              <svg viewBox="0 0 16 16" className="size-4" aria-hidden>
-                <rect x="2" y="9" width="3" height="5" rx="1" fill="var(--color-crit)" />
-                <rect x="6.5" y="5" width="3" height="9" rx="1" fill="var(--color-ink-3)" />
-                <rect x="11" y="2" width="3" height="12" rx="1" fill="var(--color-ink-3)" />
-              </svg>
-            </span>
+            <BrandMark />
             <span className="text-sm font-semibold tracking-tight">Supplier Blindspot</span>
             {dataset.source === 'bundled' && <span className="hidden text-xs text-ink-3 sm:inline">Arora Traders</span>}
           </NavLink>
