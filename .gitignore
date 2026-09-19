@@ -9,10 +9,14 @@ venv/
 .mypy_cache/
 .coverage
 htmlcov/
+build/
+dist/
 
 # --- Node / web build
 web/node_modules/
 web/dist/
+web/.vite/
+*.tsbuildinfo
 npm-debug.log*
 
 # --- Environment and secrets
@@ -25,11 +29,17 @@ web/.env.*
 # Public, not a secret: the hosted API URL the production build uses.
 !web/.env.production
 
+# --- Hosting CLIs and local tool settings
+.vercel/
+.claude/
+
 # --- Editors and OS
 .vscode/
 .idea/
+*.swp
 .DS_Store
 Thumbs.db
+desktop.ini
 *.log
 
 # --- Generated, reproducible with one command

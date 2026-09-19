@@ -118,7 +118,6 @@ Two independent pieces. The web app works on its own (assignment results are bun
 
 **Web app.** The hosted build runs only `npm run build`, so the pipeline's outputs (`web/src/data/`, `web/public/briefs/`, `web/public/approach.pdf`) are committed. Set `VITE_UPLOAD_API_URL` to the API's URL to enable uploads.
 
-- **Netlify** — import the repo; [`netlify.toml`](netlify.toml) sets base `web`, publish `dist`.
 - **Vercel** — import the repo, set Root Directory to `web`; [`web/vercel.json`](web/vercel.json) does the rest.
 - **Anywhere else** — `cd web && npm run build` and upload `web/dist/`. Hash routing means no rewrite rules are needed.
 
