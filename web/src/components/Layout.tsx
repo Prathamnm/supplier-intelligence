@@ -6,7 +6,7 @@ import { ErrorBoundary } from './ErrorBoundary'
 import { date } from '../lib/format'
 
 const NAV = [
-  { to: '/', label: 'Overview', end: true },
+  { to: '/overview', label: 'Overview', end: true },
   { to: '/attribution', label: 'Untraced returns' },
   { to: '/briefs', label: 'Briefs' },
   { to: '/method', label: 'Method' },
@@ -34,7 +34,7 @@ export function Layout() {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:px-6">
-          <NavLink to="/" className="flex items-center gap-2.5">
+          <NavLink to="/" className="flex items-center gap-2.5" title="Back to the start page">
             <span className="grid size-7 place-items-center rounded-lg bg-surface-2 ring-1 ring-line">
               <svg viewBox="0 0 16 16" className="size-4" aria-hidden>
                 <rect x="2" y="9" width="3" height="5" rx="1" fill="var(--color-crit)" />
@@ -82,7 +82,7 @@ export function Layout() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => navigator.clipboard?.writeText(`${window.location.origin}${window.location.pathname}#/?analysis=${dataset.key}`)}
+                  onClick={() => navigator.clipboard?.writeText(`${window.location.origin}${window.location.pathname}#/overview?analysis=${dataset.key}`)}
                   className="ml-auto text-ink-3 hover:text-ink"
                   title="Copy a link that opens this analysis (while the server keeps it)"
                 >

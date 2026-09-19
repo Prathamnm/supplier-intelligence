@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
         <button
           type="button"
           onClick={() => {
-            window.location.hash = '#/'
+            window.location.hash = '#/overview'
             this.setState({ error: null })
           }}
           className="mt-4 text-sm text-accent hover:underline"

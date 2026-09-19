@@ -110,7 +110,7 @@ export function DatasetProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Open an analysis from a shared link (#/?analysis=<id>), or restore the
+  // Open an analysis from a shared link (#/overview?analysis=<id>), or restore the
   // one from before a page reload -- if the server still has it.
   useEffect(() => {
     let id = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('analysis')

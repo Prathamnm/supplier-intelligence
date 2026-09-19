@@ -4,9 +4,10 @@ import { HashRouter, Route, Routes } from 'react-router-dom'
 import './index.css'
 import { Layout } from './components/Layout'
 import Overview from './pages/Overview'
+import Welcome from './pages/Welcome'
 import { DatasetProvider } from './lib/dataset'
 
-// Overview ships in the main bundle for first paint; the rest load on demand.
+// Welcome and Overview ship in the main bundle for first paint; the rest load on demand.
 const SupplierPage = lazy(() => import('./pages/SupplierPage'))
 const Attribution = lazy(() => import('./pages/Attribution'))
 const Briefs = lazy(() => import('./pages/Briefs'))
@@ -24,8 +25,9 @@ createRoot(root).render(
     <HashRouter>
       <Suspense fallback={<div className="p-10 text-sm text-ink-3">Loading…</div>}>
         <Routes>
+          <Route index element={<Welcome />} />
           <Route element={<Layout />}>
-            <Route index element={<Overview />} />
+            <Route path="overview" element={<Overview />} />
             <Route path="supplier/:id" element={<SupplierPage />} />
             <Route path="attribution" element={<Attribution />} />
             <Route path="briefs" element={<Briefs />} />

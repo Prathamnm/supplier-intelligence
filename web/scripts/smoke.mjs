@@ -69,7 +69,10 @@ try {
     failed ||= !ok
     errors.length = 0
   }
-  await check('Overview (load)')
+  await check('Welcome (load)')
+  await evaluate(`[...document.querySelectorAll('a')].find(a => a.textContent.includes('Get started'))?.click()`)
+  await sleep(1500)
+  await check('Overview')
   for (const label of PAGES) {
     await evaluate(`[...document.querySelectorAll('nav a')].find(a => a.textContent.trim() === ${JSON.stringify(label)})?.click()`)
     await sleep(1500)

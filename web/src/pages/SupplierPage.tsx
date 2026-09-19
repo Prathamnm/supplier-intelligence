@@ -27,7 +27,7 @@ export default function SupplierPage() {
     return (
       <div className="py-24 text-center">
         <div className="text-lg font-semibold">No supplier “{id}”</div>
-        <Link to="/" className="mt-2 inline-block text-accent">Back to overview</Link>
+        <Link to="/overview" className="mt-2 inline-block text-accent">Back to overview</Link>
       </div>
     )
   }
@@ -41,7 +41,7 @@ export default function SupplierPage() {
     <div className="space-y-12">
       {/* header */}
       <section className="animate-fade">
-        <Link to="/" className="text-xs text-ink-3 hover:text-ink">← All suppliers</Link>
+        <Link to="/overview" className="text-xs text-ink-3 hover:text-ink">← All suppliers</Link>
         <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-3">

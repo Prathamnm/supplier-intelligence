@@ -55,6 +55,10 @@ function identify(columns: string[], schema: Schema): string | null {
 
 const kb = (n: number) => (n > 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1e3))} KB`)
 
+// How long to keep trying to wake the API, and how often.
+const WAKE_BUDGET_MS = 180_000
+const WAKE_RETRY_MS = 4_000
+
 export default function Upload() {
   const nav = useNavigate()
   const { activate } = useDatasetState()
@@ -80,14 +84,31 @@ export default function Upload() {
   const [attempt, setAttempt] = useState(0)
   // biome-ignore lint/correctness/useExhaustiveDependencies: `attempt` is the trigger for "Try again"
   useEffect(() => {
+    // While a sleeping server wakes it often answers with a quick error rather
+    // than a slow reply, so keep asking every few seconds; only call it down
+    // after a few minutes of no answer.
+    let cancelled = false
+    let retry: ReturnType<typeof setTimeout> | undefined
+    const giveUpAt = Date.now() + WAKE_BUDGET_MS
     setServer('checking')
     setSlow(false)
-    getSchema()
-      .then((s) => {
-        setSchema(s)
-        setServer('up')
-      })
-      .catch(() => setServer('down'))
+    const check = () =>
+      getSchema()
+        .then((s) => {
+          if (cancelled) return
+          setSchema(s)
+          setServer('up')
+        })
+        .catch(() => {
+          if (cancelled) return
+          if (Date.now() < giveUpAt) retry = setTimeout(check, WAKE_RETRY_MS)
+          else setServer('down')
+        })
+    check()
+    return () => {
+      cancelled = true
+      clearTimeout(retry)
+    }
   }, [attempt])
 
   // A ticking clock while the server analyses, so the wait reads as progress.
@@ -128,7 +149,7 @@ export default function Upload() {
 
   async function finish(id: string) {
     await activate(id)
-    nav('/')
+    nav('/overview')
   }
 
   async function run() {
@@ -159,7 +180,7 @@ export default function Upload() {
       {server === 'checking' && slow && (
         <Card className="flex items-center gap-3 p-5 text-sm text-ink-2">
           <span className="size-4 shrink-0 animate-spin rounded-full border-2 border-accent border-t-transparent" aria-hidden />
-          Waking up the analysis server. You can add your files meanwhile — the analysis starts as soon as it’s ready.
+          Waking up the analysis server — this takes about a minute after a quiet spell. You can add your files meanwhile; the analysis starts as soon as it’s ready.
         </Card>
       )}
 
