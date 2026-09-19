@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| **Live app** | _add deployed URL_ |
+| **Live app** | https://supplier-intelligence-iota.vercel.app |
 | **Approach document** | [`web/public/approach.pdf`](web/public/approach.pdf) (generated) |
 | **Negotiation briefs** | [`web/public/briefs/`](web/public/briefs/) — five 2-page A4 PDFs |
 
