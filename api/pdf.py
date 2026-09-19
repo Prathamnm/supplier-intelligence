@@ -20,6 +20,8 @@ from pathlib import Path
 
 log = logging.getLogger("supplier-intelligence.api")
 _one_at_a_time = threading.Lock()
+# Why the last print failed, reported by /api/health so a hosting problem is visible.
+last_error: str | None = None
 
 
 def html_to_pdf(html: Path, pdf: Path) -> bool:
@@ -31,6 +33,7 @@ def html_to_pdf(html: Path, pdf: Path) -> bool:
         try:
             if _playwright(html, tmp) or _local_browser(html, tmp):
                 os.replace(tmp, pdf)
+                _set_error(None)
                 return True
             return False
         finally:
@@ -41,6 +44,7 @@ def _playwright(html: Path, out: Path) -> bool:
     try:
         from playwright.sync_api import Error, sync_playwright
     except ImportError:
+        _set_error("playwright is not installed")
         return False
     try:
         with sync_playwright() as p:
@@ -54,8 +58,14 @@ def _playwright(html: Path, out: Path) -> bool:
                 browser.close()
         return out.exists() and out.stat().st_size > 0
     except Error as e:
-        log.warning("Playwright could not print %s: %s", html.name, str(e).splitlines()[0])
+        _set_error(" ".join(str(e).split())[:400])
+        log.warning("Playwright could not print %s: %s", html.name, last_error)
         return False
+
+
+def _set_error(message: str | None) -> None:
+    global last_error
+    last_error = message
 
 
 def _local_browser(html: Path, out: Path) -> bool:

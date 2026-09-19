@@ -30,6 +30,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 
+from api import pdf as pdf_printer
 from api.pdf import html_to_pdf
 from api.settings import Settings
 from api.store import AnalysisStore
@@ -159,7 +160,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/api/health")
     def health() -> dict:
-        return {"status": "ok", "version": app.version, "ready": _warm.is_set()}
+        return {"status": "ok", "version": app.version, "ready": _warm.is_set(),
+                "pdf_error": pdf_printer.last_error}
 
     @app.get("/api/schema")
     def schema() -> dict:
