@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { wakeApi } from '../lib/api'
 import { useDatasetState } from '../lib/dataset'
 import { ErrorBoundary } from './ErrorBoundary'
 import { date } from '../lib/format'
@@ -16,6 +17,11 @@ export function Layout() {
   const { pathname } = useLocation()
   const { dataset, reset, notice } = useDatasetState()
   const { summary, approachUrl } = dataset
+  // Start waking the upload API in the background the moment the site opens.
+  useEffect(() => {
+    wakeApi()
+  }, [])
+
   // Scroll to the top on every route change. The braces matter: newer browsers
   // make scrollTo() return a Promise, and an effect that returns anything but a
   // cleanup function crashes React on the next navigation (blank page).

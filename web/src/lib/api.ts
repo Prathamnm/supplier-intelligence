@@ -1,8 +1,8 @@
 // Client for the analysis API (api/main.py). In development Vite proxies
-// /api to the local server; a deployed build points VITE_API_URL at it.
+// /api to the local server; a deployed build points VITE_UPLOAD_API_URL at it.
 import type { Brief, QualityReport, Summary, Supplier } from './types'
 
-const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+const BASE = (import.meta.env.VITE_UPLOAD_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
 export const apiUrl = (path: string) => `${BASE}/api${path}`
 
@@ -76,7 +76,15 @@ export interface AnalysisData {
   quality: QualityReport
 }
 
-export const getHealth = () => request<{ status: string }>('/health')
+export const getHealth = () => request<{ status: string; ready?: boolean }>('/health')
+
+/**
+ * Nudge the API awake as soon as the site opens, so it is usually ready by
+ * the time someone reaches the Upload page. Fire-and-forget: failures don't matter.
+ */
+export function wakeApi(): void {
+  getHealth().catch(() => undefined)
+}
 export const getSchema = () => request<Schema>('/schema')
 export const getSamples = () => request<Sample[]>('/samples')
 export const analyseSample = (name: string) =>
@@ -93,6 +101,9 @@ export function createAnalysis(files: File[], onUpload: (fraction: number) => vo
     for (const f of files) form.append('files', f, f.name)
     const xhr = new XMLHttpRequest()
     xhr.open('POST', apiUrl('/analyses'))
+    // Room for a sleeping server to wake (~1 min) plus the analysis itself.
+    xhr.timeout = 180_000
+    xhr.ontimeout = () => reject(new ApiError(0, 'The analysis server took too long to respond. Please try again.'))
     xhr.responseType = 'json'
     xhr.upload.onprogress = (e) => e.lengthComputable && onUpload(e.loaded / e.total)
     xhr.onload = () => {

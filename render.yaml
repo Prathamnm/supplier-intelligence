@@ -1,6 +1,6 @@
 # Render blueprint for the upload API (https://render.com/docs/blueprint-spec).
-# The web app is deployed separately (Netlify/Vercel) with VITE_API_URL set
-# to this service's URL; set SI_CORS_ORIGINS to the web app's URL.
+# The web app is deployed separately on Vercel (web/.env.production holds
+# this service's URL); SI_ALLOWED_ORIGINS lists the web app's URL.
 services:
   - type: web
     name: supplier-intelligence-api
@@ -12,5 +12,5 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.1
-      - key: SI_CORS_ORIGINS
-        sync: false
+      - key: SI_ALLOWED_ORIGINS
+        value: https://supplier-intelligence-iota.vercel.app,http://localhost:5173,http://localhost:4173

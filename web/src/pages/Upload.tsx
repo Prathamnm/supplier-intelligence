@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type DragEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { analyseSample, ApiError, createAnalysis, getSamples, getSchema, type Sample, type Schema } from '../lib/api'
 import { useDatasetState } from '../lib/dataset'
+import bundledSchema from '../data/schema.json'
 import { Card, Pill, Section } from '../components/ui'
 
 const FILE_LABEL: Record<string, string> = {
@@ -57,7 +58,9 @@ const kb = (n: number) => (n > 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.max(
 export default function Upload() {
   const nav = useNavigate()
   const { activate } = useDatasetState()
-  const [schema, setSchema] = useState<Schema | null>(null)
+  // The file rules ship with the site, so files can be checked the instant they're
+  // dropped -- no waiting for the API to wake. The server's copy replaces it when it answers.
+  const [schema, setSchema] = useState<Schema>({ ...bundledSchema, max_file_mb: 25, max_files: 10 })
   const [samples, setSamples] = useState<Sample[]>([])
   const [server, setServer] = useState<'checking' | 'up' | 'down'>('checking')
   const [picked, setPicked] = useState<Picked[]>([])
@@ -97,7 +100,6 @@ export default function Upload() {
   }, [phase])
 
   const add = useCallback(async (files: FileList | File[]) => {
-    if (!schema) return
     const next = await Promise.all(
       Array.from(files).map(async (file) => {
         const columns = file.name.toLowerCase().endsWith('.csv') ? await readHeader(file) : []
@@ -118,12 +120,13 @@ export default function Upload() {
     if (e.dataTransfer.files.length) void add(e.dataTransfer.files)
   }
 
-  const required = schema ? Object.keys(schema.files) : Object.keys(FILE_LABEL)
+  const required = Object.keys(schema.files)
   const found = new Map(picked.filter((p) => p.detected).map((p) => [p.detected as string, p]))
   const missing = required.filter((r) => !found.has(r))
-  const tooBig = schema ? picked.filter((p) => p.file.size > schema.max_file_mb * 1e6) : []
+  const tooBig = picked.filter((p) => p.file.size > schema.max_file_mb * 1e6)
   const busy = phase.kind === 'uploading' || phase.kind === 'analysing'
-  const ready = server === 'up' && missing.length === 0 && tooBig.length === 0 && !busy
+  // Not gated on the server: if it is still waking, the upload simply waits for it.
+  const ready = missing.length === 0 && tooBig.length === 0 && !busy
 
   async function finish(id: string) {
     await activate(id)
@@ -168,7 +171,7 @@ export default function Upload() {
       {server === 'checking' && slow && (
         <Card className="flex items-center gap-3 p-5 text-sm text-ink-2">
           <span className="size-4 shrink-0 animate-spin rounded-full border-2 border-accent border-t-transparent" aria-hidden />
-          Waking up the analysis server — this can take up to a minute the first time.
+          Waking up the analysis server. You can add your files meanwhile — the analysis starts as soon as it’s ready.
         </Card>
       )}
 
@@ -176,8 +179,8 @@ export default function Upload() {
         <Card className="border-warn/40 p-5">
           <div className="font-medium text-warn">The analysis server isn’t responding.</div>
           <p className="mt-1 text-sm text-ink-2">
-            Uploads need the Python API, which is either still starting up or unavailable. The rest of the site keeps working
-            with the built-in assignment data.
+            Your files can still be checked here, but running the analysis needs the Python API. The rest of the site keeps
+            working with the built-in assignment data.
           </p>
           <button
             type="button"
@@ -207,7 +210,7 @@ export default function Upload() {
             onDrop={onDrop}
             className={`flex min-h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
               dragging ? 'border-accent bg-accent/5' : 'border-line-strong bg-surface'
-            } ${server !== 'up' ? 'opacity-50' : ''}`}
+            }`}
           >
             <svg viewBox="0 0 24 24" className="size-10 text-ink-3" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
               <path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeLinecap="round" strokeLinejoin="round" />
@@ -216,7 +219,7 @@ export default function Upload() {
             <div className="mt-1 text-sm text-ink-3">all six at once, or a few at a time</div>
             <button
               type="button"
-              disabled={server !== 'up' || busy}
+              disabled={busy}
               onClick={() => input.current?.click()}
               className="mt-5 rounded-lg bg-ink px-4 py-2 text-sm font-medium text-bg hover:bg-ink-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -258,7 +261,7 @@ export default function Upload() {
                 )
               })}
             </ul>
-            {schema && missing.length > 0 && picked.length > 0 && (
+            {missing.length > 0 && picked.length > 0 && (
               <p className="mt-4 text-xs leading-relaxed text-ink-3">
                 Missing files are recognised by these columns — {missing.map((m) => (
                   <span key={m} className="block"><span className="text-ink-2">{FILE_LABEL[m]}:</span> {schema.files[m].join(', ')}</span>
@@ -287,7 +290,7 @@ export default function Upload() {
                       ) : (
                         <Pill tone="crit">{p.columns.length ? 'Not recognised — columns don’t match any required file' : 'Not a CSV'}</Pill>
                       )}
-                      {schema && p.file.size > schema.max_file_mb * 1e6 && <Pill tone="crit">Over {schema.max_file_mb} MB</Pill>}
+                      {p.file.size > schema.max_file_mb * 1e6 && <Pill tone="crit">Over {schema.max_file_mb} MB</Pill>}
                     </td>
                     <td className="text-right">
                       <button

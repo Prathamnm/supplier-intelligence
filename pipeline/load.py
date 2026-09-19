@@ -20,20 +20,11 @@ import pandas as pd
 
 from pipeline import config
 from pipeline.quality import PipelineError, Quality
+from pipeline.schema import SIGNATURES
+from pipeline.schema import identify as identify_columns
 
 STAGE = "01-load"
 
-# A file is identified by the columns it contains. This means the
-# pipeline works on files named Book1.csv, and fails clearly rather than
-# mysteriously when a file is missing.
-SIGNATURES: dict[str, set[str]] = {
-    "purchase_orders": {"po_id", "supplier_id", "quantity_ordered", "unit_price_quoted"},
-    "goods_receipts": {"gr_id", "po_id", "quantity_received", "invoice_amount_billed"},
-    "customer_returns": {"return_id", "return_date", "quantity_returned"},
-    "market_price_index": {"month", "material_category", "market_price_per_mt"},
-    "payment_records": {"po_id", "actual_payment_date", "agreed_payment_days"},
-    "supplier_master": {"supplier_id", "supplier_name", "material_categories"},
-}
 
 DATE_COLS: dict[str, list[str]] = {
     "purchase_orders": ["po_date", "delivery_promised_date"],
@@ -110,11 +101,9 @@ class Dataset:
 
 
 def identify(df: pd.DataFrame) -> str | None:
-    cols = set(df.columns)
-    for name, required in SIGNATURES.items():
-        if required <= cols:
-            return name
-    return None
+    """A file is identified by the columns it contains, so the pipeline works
+    on files named Book1.csv and fails clearly when one is missing."""
+    return identify_columns(df.columns)
 
 
 def _discover(raw_dir: Path, q: Quality) -> dict[str, pd.DataFrame]:

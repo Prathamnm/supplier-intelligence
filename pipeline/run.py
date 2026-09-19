@@ -23,7 +23,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from pipeline import attribute, brief, config, export, load, money, prepare, report, score
+from pipeline import attribute, brief, config, export, load, money, prepare, report, schema, score
 from pipeline.attribute import FEATURE_LABELS
 from pipeline.quality import PipelineError, Quality
 from pipeline.score import DIMENSION_LABELS, METRIC
@@ -101,6 +101,9 @@ def run(raw: Path | None = None, pdf: bool = True, web: bool = True,
         "returns.json": _returns(att),
         "briefs.json": briefs,
         "quality.json": q.to_dict(),
+        # The file rules, bundled into the site so the Upload page can check
+        # files instantly, before the API has even woken up.
+        "schema.json": {"files": {n: sorted(c) for n, c in schema.SIGNATURES.items()}},
     }
     targets = [out / "data"] + ([config.WEB_DATA] if web else [])
     for target in targets:

@@ -16,11 +16,12 @@ rather than memorising the assignment's.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+from evaluation.scenarios import Profile, Scenario
 
 MATERIALS = [
     "MS Pipes", "GI Pipes", "SS Pipes", "ERW Pipes", "MS Sheets", "HR Coils",
@@ -30,53 +31,6 @@ MATERIALS = [
 ]
 REASONS = ["Bend/warp", "Edge damage", "Wrong dimensions", "Surface rust", "Weight short", "Grade mismatch"]
 CITIES = ["Pune", "Mumbai", "Nashik", "Aurangabad", "Nagpur", "Kolhapur", "Ahmedabad", "Chennai"]
-
-
-@dataclass
-class Profile:
-    """How one supplier behaves. Defaults are a normal, decent supplier."""
-    short: float = 0.005        # mean fraction of ordered qty not delivered
-    late: float = 1.5           # mean days late
-    reject: float = 0.0         # mean fraction rejected at inspection
-    defect: float = 1.0         # multiplier on the chance a batch triggers customer returns
-    premium: float = 0.0        # systematic price premium, fraction
-    # material -> overrides, for a supplier that is bad on one line only
-    by_material: dict[str, dict] = field(default_factory=dict)
-    # ISO date from which the behaviour above applies; before it, a normal
-    # supplier. Models a supplier that deteriorated recently.
-    bad_from: str | None = None
-
-
-@dataclass
-class Scenario:
-    name: str
-    title: str
-    purpose: str
-    n_suppliers: int
-    n_orders: int
-    bad: dict[str, Profile]            # supplier_id -> planted behaviour
-    price_noise: float = 0.10          # sd of per-order price noise (fraction)
-    label_share: float = 0.65          # share of returns with supplier recorded
-    # If set, returns from planted offenders are recorded at this rate instead:
-    # clerks write the supplier down more often when it's a known problem one.
-    label_share_bad: float | None = None
-    return_rate: float = 0.0045        # returns per MT received, for a normal supplier
-    materials: int = 18
-    index_materials: int = 6
-    years: int = 3
-    tiny_suppliers: dict[str, int] = field(default_factory=dict)  # id -> order count
-    # Behaviour that is *not* a planted offence -- e.g. a tiny supplier whose
-    # two orders happened to go badly. The pipeline should not condemn them.
-    unlucky: dict[str, Profile] = field(default_factory=dict)
-    messy: bool = False
-    # "batch": a return comes from a specific delivery, weeks after it arrived.
-    # "propensity": as observed in the assignment data -- the supplier is
-    # drawn by volume x defect rate, but the returned material and date are
-    # unrelated to any particular batch.
-    returns: str = "batch"
-    # "iso" or "indian": how a spreadsheet/Tally export would actually look.
-    export: str = "iso"
-    seed: int = 0
 
 
 def _profile(sc: Scenario, sid: str) -> Profile:

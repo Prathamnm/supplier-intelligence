@@ -27,5 +27,7 @@ class Settings:
     # PDF printing needs a local Chromium and adds ~2 s per brief. Off by
     # default: every brief also ships as an A4 HTML page the browser can print.
     pdf: bool = os.environ.get("SI_PDF", "0") == "1"
+    # The hosted web app plus local development. SI_ALLOWED_ORIGINS overrides.
     cors_origins: list[str] = field(default_factory=lambda: _env_list(
-        "SI_CORS_ORIGINS", "http://localhost:5173,http://localhost:4173"))
+        "SI_ALLOWED_ORIGINS",
+        "https://supplier-intelligence-iota.vercel.app,http://localhost:5173,http://localhost:4173"))

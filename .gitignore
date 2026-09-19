@@ -22,6 +22,8 @@ npm-debug.log*
 web/.env
 web/.env.*
 !web/.env.example
+# Public, not a secret: the hosted API URL the production build uses.
+!web/.env.production
 
 # --- Editors and OS
 .vscode/

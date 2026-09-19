@@ -116,13 +116,13 @@ detail and the returns table load only with the pages that use them.
 
 Two independent pieces. The web app works on its own (assignment results are bundled); the API adds uploads.
 
-**Web app.** The hosted build runs only `npm run build`, so the pipeline's outputs (`web/src/data/`, `web/public/briefs/`, `web/public/approach.pdf`) are committed. Set `VITE_API_URL` to the API's URL to enable uploads.
+**Web app.** The hosted build runs only `npm run build`, so the pipeline's outputs (`web/src/data/`, `web/public/briefs/`, `web/public/approach.pdf`) are committed. Set `VITE_UPLOAD_API_URL` to the API's URL to enable uploads.
 
 - **Netlify** — import the repo; [`netlify.toml`](netlify.toml) sets base `web`, publish `dist`.
 - **Vercel** — import the repo, set Root Directory to `web`; [`web/vercel.json`](web/vercel.json) does the rest.
 - **Anywhere else** — `cd web && npm run build` and upload `web/dist/`. Hash routing means no rewrite rules are needed.
 
-**API.** [`render.yaml`](render.yaml) deploys it on Render (free tier; it sleeps when idle, so the first upload after a while takes ~30–50 s to wake it). Set `SI_CORS_ORIGINS` to the web app's URL. Other settings (`SI_MAX_FILE_MB`, `SI_TTL_MINUTES`, `SI_PDF`, …) are in [`api/settings.py`](api/settings.py).
+**API.** [`render.yaml`](render.yaml) deploys it on Render (free tier; it sleeps when idle, so the first upload after a while takes ~30–50 s to wake it). Set `SI_ALLOWED_ORIGINS` to the web app's URL. Other settings (`SI_MAX_FILE_MB`, `SI_TTL_MINUTES`, `SI_PDF`, …) are in [`api/settings.py`](api/settings.py).
 
 ## Data
 
